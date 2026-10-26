@@ -185,7 +185,7 @@ function applySplashBg(url){
   const splash = document.getElementById("splash");
   if (!splash) return;
   if (url) splash.style.backgroundImage = "linear-gradient(rgba(0,0,0,.35),rgba(0,0,0,.35)),url('" + url.replace(/'/g, "") + "')";
-  else splash.style.backgroundImage = "";
+  else splash.style.backgroundImage = "linear-gradient(160deg,#1f3d2b,#2e7d5b)";
   const preview = document.getElementById("welcomeBgPreview");
   if (preview) preview.innerHTML = url ? '<img src="' + esc(url) + '" style="width:100%;max-width:320px;height:120px;object-fit:cover;border-radius:12px;margin-top:8px" alt="">' : "";
 }
