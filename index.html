@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>我的小店 · 服务器版</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+body{font-family:system-ui,-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;margin:0;background:#f6f7f4;color:#222}
+header{background:#1f3d2b;color:#fff;padding:16px 20px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px}
+header h1{font-size:20px;margin:0}
+button{cursor:pointer;border:0;border-radius:10px;padding:10px 14px;background:#1f3d2b;color:#fff}
+button.secondary{background:#e8ece6;color:#222}
+button:disabled{opacity:.5;cursor:not-allowed}
+input,select,textarea{width:100%;padding:10px;border:1px solid #ccc;border-radius:10px;box-sizing:border-box;margin:6px 0}
+main{max-width:1100px;margin:0 auto;padding:20px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px}
+.card{background:#fff;border-radius:16px;padding:14px;box-shadow:0 2px 10px rgba(0,0,0,.06)}
+.card img{width:100%;height:170px;object-fit:cover;border-radius:12px;background:#eee}
+.price{font-size:20px;font-weight:700;color:#b45309}
+.notice{background:#fff8e1;border:1px solid #f2d38a;border-radius:12px;padding:12px;margin:0 0 16px}
+.drawer{position:fixed;right:16px;bottom:16px;background:#fff;border-radius:16px;box-shadow:0 8px 30px rgba(0,0,0,.2);padding:16px;width:340px;max-width:calc(100vw - 32px);max-height:80vh;overflow:auto;z-index:10}
+.hidden{display:none}
+label{font-size:14px;color:#444}
+.qr{width:200px;height:200px;background:#fff;border:1px solid #ddd;border-radius:12px}
+footer{max-width:1100px;margin:0 auto;padding:20px;text-align:center;color:#888;font-size:13px}
+footer button{background:none;color:#888;padding:4px 8px;font-size:13px}
+.admin-row{border-top:1px solid #eee;padding:12px 0}
+.admin-row input{margin:4px 0}
+</style>
+</head>
+<body>
+<header>
+<h1 id="shopName">我的小店</h1>
+<div>
+<button onclick="toggleCart()">购物车 (<span id="cartCount">0</span>)</button>
+<button class="secondary" onclick="refreshData()">刷新商品</button>
+</div>
+</header>
+<main>
+<div class="notice" id="configNotice">
+<strong>顾客视角：</strong>这里只展示商品和下单。店主请到页脚点“店主登录”。
+WhatsApp 二维码是聊天二维码，不是收款码：顾客必须在 WhatsApp 里按发送，店主才会收到订单消息；付款请在 WhatsApp 里和店主确认。
+</div>
+
+<label>搜索商品 <input id="search" placeholder="比如：笔记本" oninput="renderGrid()"></label>
+<label>分类 <select id="category" onchange="renderGrid()"><option value="">全部</option></select></label>
+
+<div class="grid" id="grid"><p>正在加载商品……</p></div>
+
+<section id="admin" style="background:#fff;border-radius:16px;padding:16px;margin-top:20px">
+<h2>店主后台</h2>
+<div id="loginBox">
+<p>只有店主账号能登录。账号请先在 Supabase 后台 Authentication 里手动创建，部署前请在 Supabase 里关掉公开注册。</p>
+<label>店主邮箱 <input id="ownerEmail" type="email" placeholder="你注册店主账号用的邮箱"></label>
+<label>密码 <input id="ownerPassword" type="password"></label>
+<button onclick="ownerLogin()">店主登录</button>
+<p id="loginMsg" style="color:#b45309"></p>
+</div>
+<div id="ownerBox" class="hidden">
+<p id="ownerInfo"></p>
+<button class="secondary" onclick="ownerLogout()">退出登录</button>
+<hr>
+<h3>店铺设置</h3>
+<label>店铺名 <input id="shopNameInput"></label>
+<label>WhatsApp 号码（只填数字、带区号、不带 + 号，如 8613800000000） <input id="waNumber"></label>
+<button onclick="saveSettings()">保存店铺设置</button>
+<hr>
+<h3>上架新商品</h3>
+<label>商品名 <input id="pName" placeholder="如：帆布包"></label>
+<label>售价 <input id="pPrice" type="number" step="0.01" placeholder="39.90"></label>
+<label>库存 <input id="pStock" type="number" placeholder="100"></label>
+<label>分类 <input id="pCategory" placeholder="如：文具"></label>
+<label>图片链接（填图片网址；本地图片请先传到图床或 Supabase 存储，拿到公开链接再填） <input id="pImage" placeholder="https://.../图片.jpg"></label>
+<label>描述 <textarea id="pDesc" placeholder="商品简介"></textarea></label>
+<button onclick="addProduct()">上架商品</button>
+<hr>
+<h3>我的商品（改完点“保存修改”才生效，顾客端会实时刷新）</h3>
+<div id="adminList"></div>
+<hr>
+<h3>顾客订单</h3>
+<div id="orderList"><p>暂无订单。</p></div>
+<p style="color:#666;font-size:13px">订单同时有两条路：顾客下单会写入数据库，店主在这里能看到；顾客扫 WhatsApp 二维码并按发送后，店主在 WhatsApp 里也能收到同一单。</p>
+</div>
+</section>
+</main>
+
+<div id="cartDrawer" class="drawer hidden">
+<h2>购物车</h2>
+<div id="cartItems"></div>
+<p id="cartTotal"></p>
+<hr>
+<h3>结算</h3>
+<label>收货人 <input id="custName"></label>
+<label>手机号 <input id="custPhone"></label>
+<label>地址 <textarea id="custAddress"></textarea></label>
+<label>付款方式
+<select id="payMethod"><option>WhatsApp 联系店主确认</option><option>货到付款（需店主确认是否支持）</option></select>
+</label>
+<button onclick="checkout()">提交订单并生成 WhatsApp 二维码</button>
+<div id="orderResult"></div>
+</div>
+
+<footer><button onclick="scrollToAdmin()">店主登录</button></footer>
+
+<script>
+// ====== 部署前必须改这里：填你自己的 Supabase 项目地址和公开密钥（anon key） ======
+// anon key 是公开密钥，配合数据库权限规则使用是安全的。
+// 千万不要把 service_role 密钥写到这个文件里。
+const SUPABASE_URL = "https://hajgvdqytjlzbckdakvl.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhhamd2ZHF5dGpsemJja2Rha3ZsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTMwMjU3NDMsImV4cCI6MjEwODYwMTc0M30.Anf8W-kFI3z_6fMTex1Y1QzdN3yXBXg6Wk64-ExFnyw";
+const CONFIGURED = SUPABASE_URL.indexOf("YOUR-PROJECT") === -1 && SUPABASE_ANON_KEY.indexOf("YOUR-ANON-KEY") === -1;
+let sb = null;
+if (CONFIGURED && window.supabase) { sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY); }
+
+let products = [];
+let allProducts = [];
+let cart = [];
+let orders = [];
+let settings = { shop_name: "我的小店", whatsapp_number: "" };
+let isOwner = false;
+
+function esc(s){ return String(s == null ? "" : s).replace(/[&<>"']/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); }
+function money(n){ return "¥" + Number(n || 0).toFixed(2); }
+function showMsg(id, text){ const el = document.getElementById(id); if (el) el.textContent = text || ""; }
+
+const demoProducts = [
+  {id:1,name:"笔记本 A5",price:19.90,stock:100,category:"文具",image_url:"",description:"日常记录本",is_active:true},
+  {id:2,name:"签字笔（3支装）",price:12.90,stock:200,category:"文具",image_url:"",description:"书写顺滑",is_active:true},
+  {id:3,name:"洗脸巾（抽取式）",price:15.90,stock:150,category:"日用",image_url:"",description:"柔软亲肤",is_active:true},
+  {id:4,name:"保温杯 500ml",price:49.90,stock:80,category:"日用",image_url:"",description:"长效保温",is_active:true},
+  {id:5,name:"抽纸（6包）",price:22.90,stock:300,category:"家居",image_url:"",description:"家庭装",is_active:true},
+  {id:6,name:"收纳盒",price:29.90,stock:120,category:"家居",image_url:"",description:"桌面收纳",is_active:true}
+];
+
+async function loadData(){
+  if (!CONFIGURED || !sb) {
+    products = demoProducts.filter(function(p){ return p.is_active; });
+    allProducts = demoProducts;
+    document.getElementById("configNotice").innerHTML = "<strong>演示数据，未接数据库：</strong>这个文件还没有填 Supabase 地址和公开密钥，所以改动只存在当前浏览器、顾客看不到。按 DEPLOY.md 填好并部署后，商品、价格和订单才会存在服务器上，所有访客实时看到。";
+    renderGrid(); renderAdmin(); return;
+  }
+  const prodRes = await sb.from("products").select("*").eq("is_active", true).order("created_at", {ascending:false});
+  if (prodRes.error) { document.getElementById("grid").innerHTML = "<p>商品加载失败：" + esc(prodRes.error.message) + "。请检查 schema.sql 是否已执行、权限规则是否正确。</p>"; return; }
+  products = prodRes.data || [];
+  const allRes = await sb.from("products").select("*").order("created_at", {ascending:false});
+  if (!allRes.error) allProducts = allRes.data || products;
+  const setRes = await sb.from("settings").select("*").eq("id", 1).maybeSingle();
+  if (!setRes.error && setRes.data) {
+    settings = setRes.data;
+    document.getElementById("shopName").textContent = settings.shop_name || "我的小店";
+    document.getElementById("shopNameInput").value = settings.shop_name || "";
+    document.getElementById("waNumber").value = settings.whatsapp_number || "";
+  }
+  renderGrid(); renderAdmin();
+}
+
+async function loadOrders(){
+  if (!CONFIGURED || !sb || !isOwner) return;
+  const res = await sb.from("orders").select("*").order("created_at", {ascending:false}).limit(100);
+  if (!res.error) { orders = res.data || []; renderAdmin(); }
+}
+
+function subscribeRealtime(){
+  if (!CONFIGURED || !sb) return;
+  sb.channel("shop-changes")
+    .on("postgres_changes", {event:"*", schema:"public", table:"products"}, function(){ loadData(); })
+    .on("postgres_changes", {event:"*", schema:"public", table:"settings"}, function(){ loadData(); })
+    .on("postgres_changes", {event:"*", schema:"public", table:"orders"}, function(){ loadOrders(); })
+    .subscribe();
+}
+
+function refreshData(){ loadData(); if (isOwner) loadOrders(); }
+function scrollToAdmin(){ document.getElementById("admin").scrollIntoView({behavior:"smooth"}); }
+
+function renderGrid(){
+  const q = (document.getElementById("search").value || "").toLowerCase();
+  const sel = document.getElementById("category");
+  const currentCat = sel.value;
+  const cats = [];
+  products.forEach(function(p){ if (p.category && cats.indexOf(p.category) === -1) cats.push(p.category); });
+  sel.innerHTML = '<option value="">全部</option>' + cats.map(function(c){ return '<option value="' + esc(c) + '"' + (c === currentCat ? " selected" : "") + ">" + esc(c) + "</option>"; }).join("");
+  const c = sel.value;
+  const list = products.filter(function(p){ return (!c || p.category === c) && String(p.name).toLowerCase().indexOf(q) !== -1; });
+  document.getElementById("grid").innerHTML = list.map(function(p){
+    const out = Number(p.stock) <= 0;
+    return '<div class="card">' +
+      (p.image_url ? '<img src="' + esc(p.image_url) + '" alt="">' : '<div style="height:170px;border-radius:12px;background:#e8ece6;display:flex;align-items:center;justify-content:center">📦 ' + esc(p.category || "") + "</div>") +
+      "<h3>" + esc(p.name) + "</h3><p>" + esc(p.description || "") + "</p>" +
+      "<p>库存：" + esc(p.stock) + "</p>" +
+      '<p class="price">' + money(p.price) + "</p>" +
+      '<button onclick="addToCart(' + p.id + ')"' + (out ? " disabled" : "") + ">" + (out ? "已售罄" : "加入购物车") + "</button></div>";
+  }).join("") || "<p>没有找到商品。</p>";
+}
+
+function renderAdmin(){
+  if (!isOwner) return;
+  document.getElementById("adminList").innerHTML = allProducts.map(function(p){
+    return '<div class="admin-row"><strong>' + esc(p.name) + "</strong>（" + (p.is_active ? "已上架" : "已下架") + "）<br>" +
+      '<label>商品名 <input id="edit-name-' + p.id + '" value="' + esc(p.name) + '"></label>' +
+      '<label>售价 <input id="edit-price-' + p.id + '" type="number" step="0.01" value="' + esc(p.price) + '"></label>' +
+      '<label>库存 <input id="edit-stock-' + p.id + '" type="number" value="' + esc(p.stock) + '"></label>' +
+      '<label>分类 <input id="edit-cat-' + p.id + '" value="' + esc(p.category || "") + '"></label>' +
+      '<label>图片链接 <input id="edit-img-' + p.id + '" value="' + esc(p.image_url || "") + '"></label>' +
+      '<label>描述 <input id="edit-desc-' + p.id + '" value="' + esc(p.description || "") + '"></label>' +
+      '<button onclick="saveProduct(' + p.id + ')">保存修改</button> ' +
+      '<button class="secondary" onclick="toggleProduct(' + p.id + ", " + (!p.is_active) + ')">' + (p.is_active ? "下架" : "重新上架") + "</button> " +
+      '<button class="secondary" onclick="deleteProduct(' + p.id + ')">删除</button></div>';
+  }).join("") || "<p>还没有商品。</p>";
+  document.getElementById("orderList").innerHTML = orders.length ? orders.map(function(o){
+    let itemsText = "";
+    try { itemsText = (o.items_json || []).map(function(x){ return esc(x.name) + "×" + esc(x.qty); }).join("，"); } catch(e){ itemsText = ""; }
+    return '<div style="border:1px solid #eee;border-radius:12px;padding:10px;margin:8px 0"><strong>' + esc(o.order_no) + "</strong> · " + money(o.total) + " · " + esc(o.status || "") + "<br>" + itemsText + "<br>收货：" + esc(o.customer_name || "") + " " + esc(o.customer_phone || "") + " " + esc(o.customer_address || "") + "<br><button class=\"secondary\" onclick=\"markOrderDone(" + o.id + ')"' + (o.status === "done" ? " disabled" : "") + ">标记已处理</button></div>";
+  }).join("") : "<p>暂无订单。</p>";
+}
+
+async function ownerLogin(){
+  if (!CONFIGURED || !sb) { showMsg("loginMsg", "请先按 DEPLOY.md 填好 Supabase 地址和公开密钥并部署，本地演示文件无法真正登录。"); return; }
+  const email = document.getElementById("ownerEmail").value.trim();
+  const password = document.getElementById("ownerPassword").value;
+  if (!email || !password) { showMsg("loginMsg", "请填邮箱和密码。"); return; }
+  const res = await sb.auth.signInWithPassword({email: email, password: password});
+  if (res.error) { showMsg("loginMsg", "登录失败：" + res.error.message); return; }
+  await afterLogin();
+}
+async function afterLogin(){
+  const sess = await sb.auth.getSession();
+  if (!sess.data.session) return;
+  isOwner = true;
+  document.getElementById("loginBox").classList.add("hidden");
+  document.getElementById("ownerBox").classList.remove("hidden");
+  document.getElementById("ownerInfo").textContent = "已登录店主账号：" + sess.data.session.user.email;
+  await loadData(); await loadOrders();
+}
+async function ownerLogout(){
+  if (sb) await sb.auth.signOut();
+  isOwner = false;
+  document.getElementById("ownerBox").classList.add("hidden");
+  document.getElementById("loginBox").classList.remove("hidden");
+  document.getElementById("ownerPassword").value = "";
+  loadData();
+}
+function requireOwner(){
+  if (!isOwner) { alert("请先用店主账号登录。"); return false; }
+  if (!CONFIGURED) { alert("演示数据未接数据库，改动不会同步给顾客。请先按 DEPLOY.md 部署。"); return false; }
+  return true;
+}
+async function saveSettings(){
+  if (!requireOwner()) return;
+  const wa = document.getElementById("waNumber").value.trim();
+  if (wa && !/^[0-9]{8,15}$/.test(wa)) { alert("WhatsApp 号码只填数字、带区号、不带 + 号，8 到 15 位。"); return; }
+  const res = await sb.from("settings").upsert({id:1, shop_name: document.getElementById("shopNameInput").value.trim() || "我的小店", whatsapp_number: wa});
+  if (res.error) { alert("保存失败：" + res.error.message); return; }
+  alert("店铺设置已保存，顾客端会实时看到店铺名和新的 WhatsApp 号码。");
+  loadData();
+}
+async function addProduct(){
+  if (!requireOwner()) return;
+  const name = document.getElementById("pName").value.trim();
+  const price = Number(document.getElementById("pPrice").value);
+  if (!name || !price) { alert("请填商品名和售价"); return; }
+  const res = await sb.from("products").insert({name:name, price:price, stock:Number(document.getElementById("pStock").value || 0), category:document.getElementById("pCategory").value.trim(), image_url:document.getElementById("pImage").value.trim(), description:document.getElementById("pDesc").value.trim(), is_active:true});
+  if (res.error) { alert("上架失败：" + res.error.message); return; }
+  alert("已上架，顾客端会实时看到。");
+  loadData();
+}
+async function saveProduct(id){
+  if (!requireOwner()) return;
+  const res = await sb.from("products").update({
+    name: document.getElementById("edit-name-" + id).value.trim(),
+    price: Number(document.getElementById("edit-price-" + id).value),
+    stock: Number(document.getElementById("edit-stock-" + id).value || 0),
+    category: document.getElementById("edit-cat-" + id).value.trim(),
+    image_url: document.getElementById("edit-img-" + id).value.trim(),
+    description: document.getElementById("edit-desc-" + id).value.trim()
+  }).eq("id", id);
+  if (res.error) { alert("保存失败：" + res.error.message); return; }
+  alert("已保存，顾客端会实时看到新价格。");
+  loadData();
+}
+async function toggleProduct(id, active){
+  if (!requireOwner()) return;
+  const res = await sb.from("products").update({is_active: active}).eq("id", id);
+  if (res.error) { alert("操作失败：" + res.error.message); return; }
+  loadData();
+}
+async function deleteProduct(id){
+  if (!requireOwner() || !confirm("确定删除这个商品吗？")) return;
+  const res = await sb.from("products").delete().eq("id", id);
+  if (res.error) { alert("删除失败：" + res.error.message); return; }
+  loadData();
+}
+async function markOrderDone(id){
+  if (!requireOwner()) return;
+  await sb.from("orders").update({status:"done"}).eq("id", id);
+  loadOrders();
+}
+
+function addToCart(id){
+  const p = products.find(function(x){ return x.id === id; }); if (!p) return;
+  const item = cart.find(function(x){ return x.id === id; });
+  if (item) item.qty++; else cart.push({id:id, name:p.name, price:p.price, qty:1});
+  updateCart();
+}
+function updateCart(){
+  document.getElementById("cartCount").textContent = cart.reduce(function(s,x){ return s + x.qty; }, 0);
+  const subtotal = cart.reduce(function(s,x){ return s + x.price * x.qty; }, 0);
+  const ship = subtotal === 0 ? 0 : (subtotal >= 59 ? 0 : 6);
+  document.getElementById("cartItems").innerHTML = cart.length ? cart.map(function(x,i){
+    return "<div>" + esc(x.name) + " × " + x.qty + " · " + money(x.price * x.qty) +
+      ' <button class="secondary" onclick="cart[' + i + '].qty++;updateCart()">+</button> <button class="secondary" onclick="cart[' + i + '].qty--;if(cart[' + i + '].qty<=0)cart.splice(' + i + ',1);updateCart()">-</button></div>';
+  }).join("") : "<p>购物车是空的。</p>";
+  document.getElementById("cartTotal").textContent = "小计 " + money(subtotal) + " · 运费 " + money(ship) + " · 合计 " + money(subtotal + ship);
+}
+function toggleCart(){ document.getElementById("cartDrawer").classList.toggle("hidden"); }
+
+async function checkout(){
+  if (!cart.length) { alert("购物车是空的"); return; }
+  const name = document.getElementById("custName").value.trim(), phone = document.getElementById("custPhone").value.trim(), address = document.getElementById("custAddress").value.trim();
+  if (!name || !phone || !address) { alert("请填收货人、手机号和地址"); return; }
+  const subtotal = cart.reduce(function(s,x){ return s + x.price * x.qty; }, 0);
+  const ship = subtotal >= 59 ? 0 : 6;
+  const total = subtotal + ship;
+  const orderNo = "ORD-" + new Date().toISOString().slice(0,10).replaceAll("-", "") + "-" + Math.floor(1000 + Math.random() * 9000);
+  const itemsText = cart.map(function(x){ return x.name + "×" + x.qty + "（" + money(x.price * x.qty) + "）"; }).join("，");
+  let saved = false;
+  if (CONFIGURED && sb) {
+    const res = await sb.from("orders").insert({order_no: orderNo, items_json: cart, subtotal: subtotal, shipping: ship, total: total, pay_method: document.getElementById("payMethod").value, customer_name: name, customer_phone: phone, customer_address: address, status: "pending"});
+    if (res.error) { alert("订单写入数据库失败：" + res.error.message + "。请检查 orders 表的公开写入权限，仍可先用下面的 WhatsApp 链接把订单发给店主。"); }
+    else saved = true;
+  }
+  const wa = (settings.whatsapp_number || "").trim();
+  const msg = "你好，我要下单：订单" + orderNo + "，" + itemsText + "，运费" + money(ship) + "，合计" + money(total) + "。收货：" + name + " " + phone + " " + address + "。付款方式：" + document.getElementById("payMethod").value;
+  const waLink = wa ? "https://wa.me/" + wa + "?text=" + encodeURIComponent(msg) : "";
+  const qr = waLink ? "https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=" + encodeURIComponent(waLink) : "";
+  document.getElementById("orderResult").innerHTML =
+    "<h3>订单已生成：" + esc(orderNo) + "</h3><p>" + esc(itemsText) + "</p><p>合计 " + money(total) + "（含运费 " + money(ship) + "）" + (saved ? " · 已写入店主后台" : "") + "</p>" +
+    (waLink ? '<p><a href="' + waLink + '" target="_blank" rel="noopener">点这里打开 WhatsApp，把订单发给店主</a></p><img class="qr" src="' + qr + '" alt="WhatsApp 二维码"><p>扫码后请在 WhatsApp 里按发送，店主才会收到。</p>' : "<p><strong>店主还没有填 WhatsApp 号码，暂时无法生成二维码。</strong></p>") +
+    "<p>注意：这只是聊天确认，不是自动扣款；付款请在 WhatsApp 里和店主确认。</p>";
+  cart = []; updateCart();
+  if (isOwner) loadOrders();
+}
+
+loadData(); updateCart(); subscribeRealtime();
+document.addEventListener("visibilitychange", function(){ if (!document.hidden) loadData(); });
+if (sb) { sb.auth.getSession().then(function(r){ if (r.data.session) afterLogin(); }); }
+</script>
+</body>
+</html>
