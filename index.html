@@ -1,114 +1,172 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>我的小店 · 服务器版</title>
+<title>My Shop · Server Version</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-body{font-family:system-ui,-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;margin:0;background:#f6f7f4;color:#222}
-header{background:#1f3d2b;color:#fff;padding:16px 20px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px}
-header h1{font-size:20px;margin:0}
-button{cursor:pointer;border:0;border-radius:10px;padding:10px 14px;background:#1f3d2b;color:#fff}
-button.secondary{background:#e8ece6;color:#222}
-button:disabled{opacity:.5;cursor:not-allowed}
-input,select,textarea{width:100%;padding:10px;border:1px solid #ccc;border-radius:10px;box-sizing:border-box;margin:6px 0}
+body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","SF Pro Display","Helvetica Neue","Segoe UI",sans-serif;margin:0;color:#1d1d1f;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;background-color:#f6f7f4;background-image:radial-gradient(600px 400px at 10% -5%,rgba(120,200,160,.35),transparent 60%),radial-gradient(600px 400px at 95% 10%,rgba(140,180,255,.30),transparent 60%),radial-gradient(500px 400px at 50% 110%,rgba(255,210,160,.30),transparent 60%);background-attachment:fixed}
+h1,h2,h3{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Helvetica Neue",sans-serif;letter-spacing:-.02em}
+header{background:rgba(255,255,255,.55);-webkit-backdrop-filter:blur(20px) saturate(180%);backdrop-filter:blur(20px) saturate(180%);border-bottom:1px solid rgba(255,255,255,.7);box-shadow:0 8px 32px rgba(0,0,0,.08);color:#1f3d2b;padding:16px 20px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;position:sticky;top:0;z-index:20}
+header h1{font-size:22px;margin:0;font-weight:800}
+button{cursor:pointer;border:1px solid rgba(255,255,255,.35);border-radius:999px;padding:11px 18px;background:rgba(31,61,43,.85);-webkit-backdrop-filter:blur(16px) saturate(180%);backdrop-filter:blur(16px) saturate(180%);color:#fff;font-weight:600;font-family:inherit;box-shadow:inset 0 1px 0 rgba(255,255,255,.45),inset 0 -1px 0 rgba(0,0,0,.08),0 8px 24px rgba(31,61,43,.25);transition:transform .15s,box-shadow .15s,background .15s}
+button:hover{transform:translateY(-1px);box-shadow:inset 0 1px 0 rgba(255,255,255,.55),0 12px 28px rgba(31,61,43,.30)}
+button:active{transform:scale(.97)}
+button.secondary{background:rgba(255,255,255,.45);-webkit-backdrop-filter:blur(16px) saturate(180%);backdrop-filter:blur(16px) saturate(180%);border:1px solid rgba(255,255,255,.7);color:#1f3d2b;box-shadow:inset 0 1px 0 rgba(255,255,255,.9),0 8px 24px rgba(0,0,0,.10)}
+button:disabled{opacity:.5;cursor:not-allowed;transform:none}
+input,select,textarea{width:100%;padding:11px 13px;border:1px solid rgba(255,255,255,.8);border-radius:14px;box-sizing:border-box;margin:6px 0;background:rgba(255,255,255,.60);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);box-shadow:inset 0 1px 0 rgba(255,255,255,.9),0 2px 8px rgba(0,0,0,.04);font-family:inherit;color:#1d1d1f}
+input:focus,select:focus,textarea:focus{outline:none;border-color:rgba(31,61,43,.5);box-shadow:0 0 0 4px rgba(31,61,43,.12)}
 main{max-width:1100px;margin:0 auto;padding:20px}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px}
-.card{background:#fff;border-radius:16px;padding:14px;box-shadow:0 2px 10px rgba(0,0,0,.06)}
-.card img{width:100%;height:170px;object-fit:cover;border-radius:12px;background:#eee}
-.price{font-size:20px;font-weight:700;color:#b45309}
-.notice{background:#fff8e1;border:1px solid #f2d38a;border-radius:12px;padding:12px;margin:0 0 16px}
-.drawer{position:fixed;right:16px;bottom:16px;background:#fff;border-radius:16px;box-shadow:0 8px 30px rgba(0,0,0,.2);padding:16px;width:340px;max-width:calc(100vw - 32px);max-height:80vh;overflow:auto;z-index:10}
+.card{background:rgba(255,255,255,.55);-webkit-backdrop-filter:blur(20px) saturate(180%);backdrop-filter:blur(20px) saturate(180%);border:1px solid rgba(255,255,255,.7);border-radius:24px;padding:16px;box-shadow:inset 0 1px 0 rgba(255,255,255,.9),0 12px 32px rgba(0,0,0,.10)}
+.card img{width:100%;height:170px;object-fit:cover;border-radius:16px;background:rgba(255,255,255,.5);cursor:zoom-in}
+.price{font-size:20px;font-weight:800;color:#b45309}
+.notice{background:rgba(255,255,255,.55);-webkit-backdrop-filter:blur(20px) saturate(180%);backdrop-filter:blur(20px) saturate(180%);border:1px solid rgba(255,255,255,.7);border-radius:20px;padding:14px;margin:0 0 16px;box-shadow:inset 0 1px 0 rgba(255,255,255,.9),0 8px 24px rgba(0,0,0,.08)}
+.drawer{position:fixed;right:16px;bottom:16px;background:rgba(255,255,255,.70);-webkit-backdrop-filter:blur(24px) saturate(180%);backdrop-filter:blur(24px) saturate(180%);border:1px solid rgba(255,255,255,.8);border-radius:24px;box-shadow:inset 0 1px 0 rgba(255,255,255,.9),0 16px 40px rgba(0,0,0,.20);padding:18px;width:340px;max-width:calc(100vw - 32px);max-height:80vh;overflow:auto;z-index:10}
 .hidden{display:none}
 label{font-size:14px;color:#444}
 .qr{width:200px;height:200px;background:#fff;border:1px solid #ddd;border-radius:12px}
 footer{max-width:1100px;margin:0 auto;padding:20px;text-align:center;color:#888;font-size:13px}
-footer button{background:none;color:#888;padding:4px 8px;font-size:13px}
+footer button{background:rgba(255,255,255,.45);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,.7);color:#555;padding:8px 16px;font-size:13px;box-shadow:inset 0 1px 0 rgba(255,255,255,.9),0 4px 16px rgba(0,0,0,.08)}
 .admin-row{border-top:1px solid #eee;padding:12px 0}
 .admin-row input{margin:4px 0}
+.thumb-img{width:56px;height:56px;object-fit:cover;border-radius:8px;cursor:pointer;border:2px solid transparent}
+.thumb-img.active{border-color:#1f3d2b}
+.goog-te-banner-frame.skiptranslation{display:none !important}
+body{top:0 !important}
+.goog-te-gadget-simple{background:rgba(255,255,255,.60);border-radius:999px;padding:4px 10px;font-size:14px;border:1px solid rgba(255,255,255,.7) !important;box-shadow:inset 0 1px 0 rgba(255,255,255,.9)}
+.goog-te-gadget-icon{display:none}
+#google_translate_element{color:#1f3d2b;font-size:13px}
+.cart-bump{animation:cartbump .4s}
+@keyframes cartbump{0%{transform:scale(1)}40%{transform:scale(1.15)}100%{transform:scale(1)}}
+.welcome-char{display:inline-block;opacity:0;transform:translateX(-14px);animation:charIn .28s forwards}
+@keyframes charIn{to{opacity:1;transform:translateX(0)}}
+#splash{transition:transform .8s cubic-bezier(.7,0,.3,1)}
+#splash.splash-exit{transform:translateX(-100%)}
+@keyframes shopPop{from{transform:scale(.96);opacity:.4}to{transform:scale(1);opacity:1}}
+body.shop-pop header,body.shop-pop main{animation:shopPop .55s cubic-bezier(.2,.9,.3,1.2) .3s both}
 </style>
 </head>
 <body>
+<div id="splash" style="position:fixed;inset:0;z-index:200;background:linear-gradient(160deg,#1f3d2b,#2e7d5b);background-size:cover;background-position:center;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;text-align:center;padding:20px">
+<div id="splashOverlay" style="position:absolute;inset:0;background:rgba(0,0,0,.35)"></div>
+<div style="position:relative;z-index:1">
+<div id="welcomeText" style="font-size:clamp(48px,10vw,84px);font-weight:800;letter-spacing:-.03em;text-shadow:0 2px 24px rgba(0,0,0,.25);transition:opacity .5s,transform .5s;line-height:1.1">Welcome</div>
+<button onclick="enterShop()" data-i18n="enterShop" style="margin-top:28px;background:rgba(255,255,255,.25);-webkit-backdrop-filter:blur(20px) saturate(180%);backdrop-filter:blur(20px) saturate(180%);border:1px solid rgba(255,255,255,.65);color:#fff;font-size:18px;padding:14px 32px;border-radius:999px;font-weight:700;box-shadow:inset 0 1px 0 rgba(255,255,255,.7),0 12px 32px rgba(0,0,0,.25)">Enter Shop →</button>
+</div>
+</div>
 <header>
-<h1 id="shopName">我的小店</h1>
-<div>
-<button onclick="toggleCart()">购物车 (<span id="cartCount">0</span>)</button>
-<button class="secondary" onclick="refreshData()">刷新商品</button>
+<h1 id="shopName" onclick="secretTap()" style="cursor:pointer">My Shop</h1>
+<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+<button class="secondary" id="langBtn" onclick="toggleLangMenu()">🌐 Language ▾</button>
+<button id="cartBtn" onclick="toggleCart()">Cart (<span id="cartCount">0</span>)</button>
+<button class="secondary" id="refreshBtn" onclick="refreshData()">Refresh products</button>
+</div>
+<div id="langMenu" class="hidden" style="position:absolute;top:64px;right:16px;z-index:50;background:rgba(255,255,255,.85);-webkit-backdrop-filter:blur(20px) saturate(180%);backdrop-filter:blur(20px) saturate(180%);border:1px solid rgba(255,255,255,.8);border-radius:20px;box-shadow:0 16px 40px rgba(0,0,0,.20);padding:12px;width:280px;max-width:calc(100vw - 32px);max-height:70vh;overflow:auto">
+<p id="langMenuNote" style="margin:4px 8px 10px;font-size:13px;color:#444"><strong>Languages available — you choose it yourself.</strong><br>The shop does not change language automatically. Tap a language below.</p>
+<div id="langList"></div>
+<button class="secondary" data-i18n="close" style="width:100%;margin-top:8px" onclick="toggleLangMenu()">Close</button>
 </div>
 </header>
 <main>
 <div class="notice" id="configNotice">
-<strong>顾客视角：</strong>这里只展示商品和下单。店主请到页脚点“店主登录”。
-WhatsApp 二维码是聊天二维码，不是收款码：顾客必须在 WhatsApp 里按发送，店主才会收到订单消息；付款请在 WhatsApp 里和店主确认。
+<strong>Welcome!</strong> Browse products and place your order below. Languages available: click the 🌐 Language button at the top right and choose your language yourself — the shop does not change language automatically, and the whole page, including product names, will be translated into the language you choose. Click a product image to enlarge it. If a product has multiple images, click a thumbnail below the main image to switch, then click the main image to enlarge it.
+The WhatsApp QR code is a chat QR code, not a payment code: you must press Send in WhatsApp for the owner to receive your order. Please confirm payment with the owner in WhatsApp.
 </div>
 
-<label>搜索商品 <input id="search" placeholder="比如：笔记本" oninput="renderGrid()"></label>
-<label>分类 <select id="category" onchange="renderGrid()"><option value="">全部</option></select></label>
+<label>Search products <input id="search" placeholder="e.g. Pet toy" oninput="renderGrid()"></label>
+<label>Category <select id="category" onchange="renderGrid()"><option value="">All</option></select></label>
 
-<div class="grid" id="grid"><p>正在加载商品……</p></div>
+<div class="grid" id="grid"><p>Loading products...</p></div>
 
-<section id="admin" style="background:#fff;border-radius:16px;padding:16px;margin-top:20px">
-<h2>店主后台</h2>
+<section id="admin" class="hidden" style="background:rgba(255,255,255,.60);-webkit-backdrop-filter:blur(20px) saturate(180%);backdrop-filter:blur(20px) saturate(180%);border:1px solid rgba(255,255,255,.7);border-radius:24px;padding:18px;margin-top:20px;box-shadow:inset 0 1px 0 rgba(255,255,255,.9),0 12px 32px rgba(0,0,0,.10)">
+<h2 data-i18n="ownerDashboard">Owner Dashboard</h2>
 <div id="loginBox">
-<p>只有店主账号能登录。账号请先在 Supabase 后台 Authentication 里手动创建，部署前请在 Supabase 里关掉公开注册。</p>
-<label>店主邮箱 <input id="ownerEmail" type="email" placeholder="你注册店主账号用的邮箱"></label>
-<label>密码 <input id="ownerPassword" type="password"></label>
-<button onclick="ownerLogin()">店主登录</button>
+<p data-i18n="ownerOnly">Only the owner account can log in. Create the account first in Supabase &gt; Authentication, and turn off public sign-ups in Supabase before going live.</p>
+<label>Owner email <input id="ownerEmail" type="email" placeholder="The email you used for the owner account"></label>
+<label>Password <input id="ownerPassword" type="password"></label>
+<button onclick="ownerLogin()" data-i18n="ownerLogin">Owner login</button>
 <p id="loginMsg" style="color:#b45309"></p>
 </div>
 <div id="ownerBox" class="hidden">
 <p id="ownerInfo"></p>
-<button class="secondary" onclick="ownerLogout()">退出登录</button>
+<button class="secondary" onclick="ownerLogout()" data-i18n="logout">Log out</button>
 <hr>
-<h3>店铺设置</h3>
-<label>店铺名 <input id="shopNameInput"></label>
-<label>WhatsApp 号码（只填数字、带区号、不带 + 号，如 8613800000000） <input id="waNumber"></label>
-<button onclick="saveSettings()">保存店铺设置</button>
+<h3 data-i18n="shopSettings">Shop settings</h3>
+<label>Shop name <input id="shopNameInput"></label>
+<label>WhatsApp number (digits only, with country code, no + sign, e.g. 6581234567) <input id="waNumber"></label>
+<label>Welcome notice (shown at the top of the shop; you can edit this text here, customers will see it live; leave blank for the default notice) <textarea id="noticeInput" rows="4" placeholder="Welcome! Browse products and place your order below."></textarea></label>
+<button onclick="saveSettings()" data-i18n="saveSettings">Save shop settings</button>
 <hr>
-<h3>上架新商品</h3>
-<label>商品名 <input id="pName" placeholder="如：帆布包"></label>
-<label>售价 <input id="pPrice" type="number" step="0.01" placeholder="39.90"></label>
-<label>库存 <input id="pStock" type="number" placeholder="100"></label>
-<label>分类 <input id="pCategory" placeholder="如：文具"></label>
-<label>图片链接（填图片网址；本地图片请先传到图床或 Supabase 存储，拿到公开链接再填） <input id="pImage" placeholder="https://.../图片.jpg"></label>
-<label>描述 <textarea id="pDesc" placeholder="商品简介"></textarea></label>
-<button onclick="addProduct()">上架商品</button>
+<h3 data-i18n="welcomePage">Welcome page</h3>
+<label>Welcome background image link (paste a public image URL; leave blank for the default gradient) <input id="welcomeBgInput" placeholder="https://.../background.jpg"></label>
+<div id="welcomeBgPreview"></div>
+<button onclick="saveWelcomeBg()" data-i18n="saveWelcomeBg">Save welcome background</button>
+<p style="color:#666;font-size:13px" data-i18n="welcomeBgHint">Upload the background photo to Supabase Storage (product-images bucket) first, copy its public URL, and paste it here. Customers will see it full-screen on the opening page.</p>
 <hr>
-<h3>我的商品（改完点“保存修改”才生效，顾客端会实时刷新）</h3>
-<div id="adminList"></div>
+<h3 data-i18n="addNewProduct">Add new product</h3>
+<label>Product name <input id="pName" placeholder="e.g. Pet chew toy"></label>
+<label>Price <input id="pPrice" type="number" step="0.01" placeholder="39.90"></label>
+<label>Stock <input id="pStock" type="number" placeholder="100"></label>
+<label>Category <input id="pCategory" placeholder="e.g. Pet Toys"></label>
+<label>Image links (one per line, first image is the main image; upload local photos to an image host or Supabase Storage first to get public links) <textarea id="pImage" rows="3" placeholder="https://.../image1.jpg"></textarea></label>
+<label>Description <textarea id="pDesc" placeholder="Product description"></textarea></label>
+<button onclick="addProduct()" data-i18n="addProduct">Add product</button>
 <hr>
-<h3>顾客订单</h3>
-<div id="orderList"><p>暂无订单。</p></div>
-<p style="color:#666;font-size:13px">订单同时有两条路：顾客下单会写入数据库，店主在这里能看到；顾客扫 WhatsApp 二维码并按发送后，店主在 WhatsApp 里也能收到同一单。</p>
+<h3 data-i18n="myProducts">My products</h3>
+<div id="adminList" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px"></div>
+<hr>
+<h3 data-i18n="manageCategories">Manage categories</h3>
+<p style="color:#666;font-size:13px" data-i18n="manageCategoriesHint">Categories are created automatically from products. Deleting a category below will unlist or delete all products in that category.</p>
+<div id="categoryList"></div>
+<hr>
+<h3 data-i18n="customerOrders">Customer orders</h3>
+<div id="orderList"><p>No orders yet.</p></div>
+<p style="color:#666;font-size:13px" data-i18n="ordersHint">Orders work two ways: a customer order is saved to the database and appears here, and if the customer scans the WhatsApp QR code and presses Send in WhatsApp, the owner also receives the same order in WhatsApp.</p>
 </div>
 </section>
 </main>
 
 <div id="cartDrawer" class="drawer hidden">
-<h2>购物车</h2>
+<div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
+<h2 style="margin:0" data-i18n="cart">Cart</h2>
+<div style="display:flex;gap:8px;align-items:center">
+<button class="secondary" onclick="clearCart()" data-i18n="clearCart">Clear cart</button>
+<button class="secondary" onclick="toggleCart()" style="padding:6px 11px;min-width:36px;font-size:16px;line-height:1" aria-label="Close cart">✕</button>
+</div>
+</div>
 <div id="cartItems"></div>
 <p id="cartTotal"></p>
 <hr>
-<h3>结算</h3>
-<label>收货人 <input id="custName"></label>
-<label>手机号 <input id="custPhone"></label>
-<label>地址 <textarea id="custAddress"></textarea></label>
-<label>付款方式
-<select id="payMethod"><option>WhatsApp 联系店主确认</option><option>货到付款（需店主确认是否支持）</option></select>
+<h3 data-i18n="checkout">Checkout</h3>
+<label>Name <input id="custName"></label>
+<label>Phone <input id="custPhone"></label>
+<label>Address <textarea id="custAddress"></textarea></label>
+<label>Payment method
+<select id="payMethod"><option value="WhatsApp">Confirm with owner on WhatsApp</option></select>
 </label>
-<button onclick="checkout()">提交订单并生成 WhatsApp 二维码</button>
+<button onclick="checkout()" data-i18n="submitOrder">Submit order and generate WhatsApp QR code</button>
 <div id="orderResult"></div>
 </div>
 
-<footer><button onclick="scrollToAdmin()">店主登录</button></footer>
+<div id="zoomModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.88);align-items:center;justify-content:center;z-index:100" onclick="closeZoom()">
+<img id="zoomImg" style="max-width:92vw;max-height:92vh;object-fit:contain;border-radius:12px" onclick="event.stopPropagation()" alt="">
+<button style="position:absolute;top:16px;right:16px" onclick="closeZoom()" data-i18n="close">Close</button>
+<button id="zoomPrev" style="position:absolute;left:16px;top:50%" onclick="event.stopPropagation();zoomPrev()" data-i18n="prev">‹ Prev</button>
+<button id="zoomNext" style="position:absolute;right:16px;top:50%" onclick="event.stopPropagation();zoomNext()" data-i18n="next">Next ›</button>
+<p id="zoomCounter" style="position:absolute;bottom:44px;color:#fff;font-size:14px"></p>
+<p style="position:absolute;bottom:16px;color:#fff;font-size:14px" data-i18n="clickOutside">Click anywhere outside the image to close. You can also pinch to zoom on mobile.</p>
+</div>
+
+<footer data-i18n="thankYou">Thank you for visiting.</footer>
 
 <script>
-// ====== 部署前必须改这里：填你自己的 Supabase 项目地址和公开密钥（anon key） ======
-// anon key 是公开密钥，配合数据库权限规则使用是安全的。
-// 千万不要把 service_role 密钥写到这个文件里。
+// ====== Before deploying, fill in your own Supabase project URL and public key (anon key) ======
+// The anon key is a public key and is safe to use with the database permission rules.
+// Never put a service_role key in this file.
 const SUPABASE_URL = "https://hajgvdqytjlzbckdakvl.supabase.co";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhhamd2ZHF5dGpsemJja2Rha3ZsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTMwMjU3NDMsImV4cCI6MjEwODYwMTc0M30.Anf8W-kFI3z_6fMTex1Y1QzdN3yXBXg6Wk64-ExFnyw";
+const SUPABASE_ANON_KEY = "sb_publishable_MmoZyfxZvlUJdQzFWdam7Q_sgZcwcOI";
 const CONFIGURED = SUPABASE_URL.indexOf("YOUR-PROJECT") === -1 && SUPABASE_ANON_KEY.indexOf("YOUR-ANON-KEY") === -1;
 let sb = null;
 if (CONFIGURED && window.supabase) { sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY); }
@@ -117,40 +175,186 @@ let products = [];
 let allProducts = [];
 let cart = [];
 let orders = [];
-let settings = { shop_name: "我的小店", whatsapp_number: "" };
+let settings = { shop_name: "My Shop", whatsapp_number: "", welcome_bg_url: "", notice_text: "" };
 let isOwner = false;
 
+const welcomes = ["Welcome","欢迎","歡迎","Selamat Datang","வணக்கம்","नमस्ते","Chào mừng","ยินดีต้อนรับ","ようこそ","환영합니다","Bienvenido","Bienvenue","Willkommen","Benvenuto","Bem-vindo","أهلاً وسهلاً","Добро пожаловать","Hoş geldiniz"];
+let welcomeIndex = 0;
+let welcomeTimer = null;
+function applySplashBg(url){
+  const splash = document.getElementById("splash");
+  if (!splash) return;
+  if (url) splash.style.backgroundImage = "linear-gradient(rgba(0,0,0,.35),rgba(0,0,0,.35)),url('" + url.replace(/'/g, "") + "')";
+  else splash.style.backgroundImage = "";
+  const preview = document.getElementById("welcomeBgPreview");
+  if (preview) preview.innerHTML = url ? '<img src="' + esc(url) + '" style="width:100%;max-width:320px;height:120px;object-fit:cover;border-radius:12px;margin-top:8px" alt="">' : "";
+}
+function renderWelcome(word){
+  const el = document.getElementById("welcomeText"); if (!el) return;
+  el.style.opacity = "1"; el.style.transform = "scale(1)";
+  el.innerHTML = "";
+  const chars = Array.from(word);
+  const step = 600 / Math.max(chars.length, 1);
+  chars.forEach(function(ch, i){
+    const span = document.createElement("span");
+    span.className = "welcome-char";
+    span.textContent = ch === " " ? " " : ch;
+    span.style.animationDelay = (i * step) + "ms";
+    el.appendChild(span);
+  });
+}
+function startWelcomeRotation(){
+  const el = document.getElementById("welcomeText"); if (!el || welcomeTimer) return;
+  renderWelcome(welcomes[0]);
+  welcomeTimer = setInterval(function(){
+    welcomeIndex = (welcomeIndex + 1) % welcomes.length;
+    renderWelcome(welcomes[welcomeIndex]);
+  }, 1500);
+}
+function enterShop(){
+  const splash = document.getElementById("splash"); if (!splash || splash.classList.contains("splash-exit")) return;
+  if (welcomeTimer) { clearInterval(welcomeTimer); welcomeTimer = null; }
+  document.body.classList.add("shop-pop");
+  splash.classList.add("splash-exit");
+  setTimeout(function(){ splash.style.display = "none"; }, 800);
+}
+document.addEventListener("keydown", function(e){ if (e.key === "Enter" && document.getElementById("splash") && document.getElementById("splash").style.display !== "none") enterShop(); });
+
+const langOptions = [
+  ["zh-CN","中文"],["en","English"],["es","Español"],["fr","Français"],["ar","العربية"],["ru","Русский"],["pt","Português"],["hi","हिन्दी"],["de","Deutsch"]
+];
+let currentLang = localStorage.getItem("shop_lang") || "en";
+const I18N = {
+en:{cart:"Cart",refresh:"Refresh products",language:"Language",search:"Search products",searchPlaceholder:"e.g. Pet toy",category:"Category",all:"All",loading:"Loading products...",noProducts:"No products found.",stock:"Stock",soldOut:"Sold out",addToCart:"Add to cart",clickEnlarge:"Click image to enlarge",images:"images",clearCart:"Clear cart",cartEmpty:"Your cart is empty.",subtotal:"Subtotal",shipping:"Shipping",total:"Total",checkout:"Checkout",name:"Name",phone:"Phone",address:"Address",paymentMethod:"Payment method",payWhatsApp:"Confirm with owner on WhatsApp",payCOD:"Cash on delivery (confirm with owner if supported)",submitOrder:"Submit order and generate WhatsApp QR code",enterShop:"Enter Shop →",close:"Close",prev:"‹ Prev",next:"Next ›",clickOutside:"Click anywhere outside the image to close. You can also pinch to zoom on mobile.",thankYou:"Thank you for visiting.",ownerDashboard:"Owner Dashboard",ownerOnly:"Only the owner account can log in. Create the account first in Supabase > Authentication, and turn off public sign-ups in Supabase before going live.",ownerEmail:"Owner email",password:"Password",ownerLogin:"Owner login",logout:"Log out",shopSettings:"Shop settings",shopName:"Shop name",whatsapp:"WhatsApp number",welcomeNotice:"Welcome notice",saveSettings:"Save shop settings",welcomePage:"Welcome page",welcomeBg:"Welcome background image link",saveWelcomeBg:"Save welcome background",welcomeBgHint:"Upload the background photo to Supabase Storage (product-images bucket) first, copy its public URL, and paste it here. Customers will see it full-screen on the opening page.",addNewProduct:"Add new product",productName:"Product name",price:"Price",categoryLabel:"Category",imageLinks:"Image links (one per line)",description:"Description",addProduct:"Add product",myProducts:"My products",customerOrders:"Customer orders",noOrders:"No orders yet.",ordersHint:"Orders work two ways: a customer order is saved to the database and appears here, and if the customer scans the WhatsApp QR code and presses Send in WhatsApp, the owner also receives the same order in WhatsApp.",saveChanges:"Save changes",unlist:"Unlist",listAgain:"List again",delete:"Delete",markProcessed:"Mark as processed",loggedInAs:"Logged in as owner: ",noProductsYet:"No products yet.",deliveryTo:"Delivery to: ",welcome:"Welcome",noticeText:"Browse products and place your order below. Languages available: click the 🌐 Language button at the top right and choose your language yourself — the shop does not change language automatically, and the whole page, including product names, will be translated into the language you choose. Click a product image to enlarge it. If a product has multiple images, click a thumbnail below the main image to switch, then click the main image to enlarge it. The WhatsApp QR code is a chat QR code, not a payment code: you must press Send in WhatsApp for the owner to receive your order. Please confirm payment with the owner in WhatsApp.",langMenuNote:"<strong>Languages available — you choose it yourself.</strong><br>The shop does not change language automatically. Tap a language below.",alertLogin:"Please log in as the owner first.",alertDemo:"Demo data is not connected to a database, so changes will not sync to customers. Please deploy first.",alertNamePrice:"Please enter a product name and price",alertSaved:"Saved. Customers will see the new price live.",alertAdded:"Product added. Customers will see it live.",alertFillCheckout:"Please enter name, phone and address",alertCartEmpty:"Your cart is empty",alertDeleteConfirm:"Are you sure you want to delete this product?",alertSaveFailed:"Save failed: ",alertAddFailed:"Add failed: ",alertDeleteFailed:"Delete failed: ",alertOpFailed:"Operation failed: ",alertWhatsAppDigits:"WhatsApp number: digits only, with country code, no + sign, 8 to 15 digits.",alertFillLogin:"Please enter your email and password.",alertLoginFailed:"Login failed: ",alertDemoLogin:"Please fill in the Supabase URL and public key and deploy first. The local demo file cannot log in for real.",orderCreated:"Order created: ",includingShipping:"including shipping",savedToDashboard:"Saved to the owner dashboard",openWhatsApp:"Click here to open WhatsApp and send the order to the owner",pressSend:"Please press Send in WhatsApp after scanning, otherwise the owner will not receive it.",noWhatsApp:"The owner has not entered a WhatsApp number yet, so a QR code cannot be generated.",chatNotPayment:"Note: this is only a chat confirmation, not an automatic payment. Please confirm payment with the owner in WhatsApp.",listed:"Listed",unlisted:"Unlisted",demoNotice:"Demo data, not connected to a database: this file does not have a Supabase URL and public key filled in yet, so changes only exist in this browser and customers cannot see them. Fill them in and deploy, and products, prices and orders will live on the server and be visible to all visitors live."},
+"zh-CN":{cart:"购物车",refresh:"刷新商品",language:"语言",search:"搜索商品",searchPlaceholder:"例如：宠物玩具",category:"分类",all:"全部",loading:"正在加载商品……",noProducts:"没有找到商品。",stock:"库存",soldOut:"已售罄",addToCart:"加入购物车",clickEnlarge:"点击图片放大",images:"张图片",clearCart:"清空购物车",cartEmpty:"购物车是空的。",subtotal:"小计",shipping:"运费",total:"合计",checkout:"结算",name:"收货人",phone:"手机号",address:"地址",paymentMethod:"付款方式",payWhatsApp:"在 WhatsApp 上联系店主确认",payCOD:"货到付款（需店主确认是否支持）",submitOrder:"提交订单并生成 WhatsApp 二维码",enterShop:"进入商店 →",close:"关闭",prev:"‹ 上一张",next:"下一张 ›",clickOutside:"点击图片外任意处关闭，手机上也可以双指放大。",thankYou:"感谢您的光临。",ownerDashboard:"店主后台",ownerOnly:"只有店主账号能登录。请先在 Supabase > Authentication 里创建账号，上线前请关闭公开注册。",ownerEmail:"店主邮箱",password:"密码",ownerLogin:"店主登录",logout:"退出登录",shopSettings:"店铺设置",shopName:"店铺名",whatsapp:"WhatsApp 号码",welcomeNotice:"欢迎提示",saveSettings:"保存店铺设置",welcomePage:"欢迎页",welcomeBg:"欢迎页背景图片链接",saveWelcomeBg:"保存欢迎页背景",welcomeBgHint:"请先把背景照片传到 Supabase Storage（product-images 桶）里，复制公开链接再粘贴到这里，顾客在开启页会全屏看到它。",addNewProduct:"上架新商品",productName:"商品名",price:"售价",categoryLabel:"分类",imageLinks:"图片链接（一行一个）",description:"描述",addProduct:"上架商品",myProducts:"我的商品",customerOrders:"顾客订单",noOrders:"暂无订单。",ordersHint:"订单有两条路：顾客下单会写入数据库并出现在这里；顾客扫 WhatsApp 二维码并按发送后，店主在 WhatsApp 里也能收到同一单。",saveChanges:"保存修改",unlist:"下架",listAgain:"重新上架",delete:"删除",markProcessed:"标记已处理",loggedInAs:"已登录店主账号：",noProductsYet:"还没有商品。",deliveryTo:"收货：",welcome:"欢迎",noticeText:"浏览商品并下单。语言可选：点右上角的 🌐 语言按钮，自己选一种语言，店不会自动换语言，整个页面（包括商品名）都会换成你选的语言。点击商品图片可以放大，有多张图时点下面的小图可以切换，再点主图放大。WhatsApp 二维码是聊天二维码，不是收款码：请在 WhatsApp 里按发送，店主才会收到订单，付款请在 WhatsApp 里和店主确认。",langMenuNote:"<strong>有这些语言，由你自己选。</strong><br>店不会自动换语言，点下面一种语言即可。",alertLogin:"请先用店主账号登录。",alertDemo:"演示数据未接数据库，改动不会同步给顾客，请先部署。",alertNamePrice:"请填商品名和售价",alertSaved:"已保存，顾客端会实时看到新价格。",alertAdded:"已上架，顾客端会实时看到。",alertFillCheckout:"请填收货人、手机号和地址",alertCartEmpty:"购物车是空的",alertDeleteConfirm:"确定删除这个商品吗？",alertSaveFailed:"保存失败：",alertAddFailed:"上架失败：",alertDeleteFailed:"删除失败：",alertOpFailed:"操作失败：",alertWhatsAppDigits:"WhatsApp 号码只填数字、带区号、不带 + 号，8 到 15 位。",alertFillLogin:"请填邮箱和密码。",alertLoginFailed:"登录失败：",alertDemoLogin:"请先填好 Supabase 地址和公开密钥并部署，本地演示文件无法真正登录。",orderCreated:"订单已生成：",includingShipping:"含运费",savedToDashboard:"已写入店主后台",openWhatsApp:"点这里打开 WhatsApp，把订单发给店主",pressSend:"扫码后请在 WhatsApp 里按发送，否则店主收不到。",noWhatsApp:"店主还没有填 WhatsApp 号码，暂时无法生成二维码。",chatNotPayment:"注意：这只是聊天确认，不是自动扣款；付款请在 WhatsApp 里和店主确认。",listed:"已上架",unlisted:"已下架",demoNotice:"演示数据，未接数据库：这个文件还没有填 Supabase 地址和公开密钥，所以改动只存在当前浏览器、顾客看不到。填好并部署后，商品、价格和订单才会存在服务器上，所有访客实时看到。"},
+es:{cart:"Carrito",refresh:"Actualizar productos",language:"Idioma",search:"Buscar productos",searchPlaceholder:"p. ej. juguete para mascotas",category:"Categoría",all:"Todos",loading:"Cargando productos...",noProducts:"No se encontraron productos.",stock:"Existencias",soldOut:"Agotado",addToCart:"Añadir al carrito",clickEnlarge:"Haz clic en la imagen para ampliarla",images:"imágenes",clearCart:"Vaciar carrito",cartEmpty:"Tu carrito está vacío.",subtotal:"Subtotal",shipping:"Envío",total:"Total",checkout:"Pagar",name:"Nombre",phone:"Teléfono",address:"Dirección",paymentMethod:"Método de pago",payWhatsApp:"Confirmar con el propietario en WhatsApp",payCOD:"Pago contra entrega (confirma con el propietario si está disponible)",submitOrder:"Enviar pedido y generar código QR de WhatsApp",enterShop:"Entrar a la tienda →",close:"Cerrar",prev:"‹ Anterior",next:"Siguiente ›",clickOutside:"Haz clic fuera de la imagen para cerrar. También puedes pellizcar para ampliar en el móvil.",thankYou:"Gracias por visitarnos.",ownerDashboard:"Panel del propietario",ownerOnly:"Solo la cuenta del propietario puede iniciar sesión. Crea la cuenta primero en Supabase > Authentication y desactiva el registro público en Supabase antes de publicar.",ownerEmail:"Correo del propietario",password:"Contraseña",ownerLogin:"Iniciar sesión del propietario",logout:"Cerrar sesión",shopSettings:"Configuración de la tienda",shopName:"Nombre de la tienda",whatsapp:"Número de WhatsApp",welcomeNotice:"Aviso de bienvenida",saveSettings:"Guardar configuración",welcomePage:"Página de bienvenida",welcomeBg:"Enlace de la imagen de fondo de bienvenida",saveWelcomeBg:"Guardar fondo de bienvenida",welcomeBgHint:"Sube primero la foto de fondo a Supabase Storage (bucket product-images), copia su enlace público y pégalo aquí. Los clientes la verán a pantalla completa en la página de inicio.",addNewProduct:"Añadir nuevo producto",productName:"Nombre del producto",price:"Precio",categoryLabel:"Categoría",imageLinks:"Enlaces de imágenes (uno por línea)",description:"Descripción",addProduct:"Añadir producto",myProducts:"Mis productos",customerOrders:"Pedidos de clientes",noOrders:"Aún no hay pedidos.",ordersHint:"Los pedidos funcionan de dos formas: un pedido se guarda en la base de datos y aparece aquí, y si el cliente escanea el código QR de WhatsApp y pulsa Enviar en WhatsApp, el propietario también lo recibe en WhatsApp.",saveChanges:"Guardar cambios",unlist:"Quitar de la lista",listAgain:"Volver a listar",delete:"Eliminar",markProcessed:"Marcar como procesado",loggedInAs:"Sesión iniciada como propietario: ",noProductsYet:"Aún no hay productos.",deliveryTo:"Entrega a: ",welcome:"Bienvenido",noticeText:"Explora los productos y haz tu pedido. Idiomas disponibles: pulsa el botón 🌐 Idioma en la parte superior derecha y elige tu idioma tú mismo; la tienda no cambia de idioma automáticamente y toda la página, incluidos los nombres de los productos, se traducirá al idioma que elijas. Haz clic en la imagen de un producto para ampliarla. Si un producto tiene varias imágenes, pulsa una miniatura para cambiar y luego la imagen principal para ampliarla. El código QR de WhatsApp es un código de chat, no de pago: debes pulsar Enviar en WhatsApp para que el propietario reciba tu pedido. Confirma el pago con el propietario en WhatsApp.",langMenuNote:"<strong>Idiomas disponibles: tú eliges.</strong><br>La tienda no cambia de idioma automáticamente. Toca un idioma abajo.",alertLogin:"Inicia sesión como propietario primero.",alertDemo:"Los datos de demostración no están conectados a una base de datos, así que los cambios no se sincronizarán con los clientes. Despliega primero.",alertNamePrice:"Escribe el nombre y el precio del producto",alertSaved:"Guardado. Los clientes verán el nuevo precio en vivo.",alertAdded:"Producto añadido. Los clientes lo verán en vivo.",alertFillCheckout:"Escribe nombre, teléfono y dirección",alertCartEmpty:"Tu carrito está vacío",alertDeleteConfirm:"¿Seguro que quieres eliminar este producto?",alertSaveFailed:"Error al guardar: ",alertAddFailed:"Error al añadir: ",alertDeleteFailed:"Error al eliminar: ",alertOpFailed:"Operación fallida: ",alertWhatsAppDigits:"Número de WhatsApp: solo dígitos, con código de país, sin +, de 8 a 15 dígitos.",alertFillLogin:"Escribe tu correo y contraseña.",alertLoginFailed:"Error al iniciar sesión: ",alertDemoLogin:"Rellena primero la URL de Supabase y la clave pública y despliega. El archivo de demostración local no puede iniciar sesión de verdad.",orderCreated:"Pedido creado: ",includingShipping:"incluido el envío",savedToDashboard:"Guardado en el panel del propietario",openWhatsApp:"Haz clic aquí para abrir WhatsApp y enviar el pedido al propietario",pressSend:"Pulsa Enviar en WhatsApp después de escanear, si no el propietario no lo recibirá.",noWhatsApp:"El propietario aún no ha introducido un número de WhatsApp, así que no se puede generar un código QR.",chatNotPayment:"Nota: esto es solo una confirmación por chat, no un pago automático. Confirma el pago con el propietario en WhatsApp.",listed:"Listado",unlisted:"No listado",demoNotice:"Datos de demostración, no conectados a una base de datos: este archivo aún no tiene la URL de Supabase ni la clave pública, así que los cambios solo existen en este navegador y los clientes no pueden verlos. Rellénalos y despliega, y los productos, precios y pedidos vivirán en el servidor y serán visibles para todos los visitantes en vivo."},
+fr:{cart:"Panier",refresh:"Actualiser les produits",language:"Langue",search:"Rechercher des produits",searchPlaceholder:"p. ex. jouet pour animaux",category:"Catégorie",all:"Tous",loading:"Chargement des produits...",noProducts:"Aucun produit trouvé.",stock:"Stock",soldOut:"Épuisé",addToCart:"Ajouter au panier",clickEnlarge:"Cliquez sur l'image pour l'agrandir",images:"images",clearCart:"Vider le panier",cartEmpty:"Votre panier est vide.",subtotal:"Sous-total",shipping:"Livraison",total:"Total",checkout:"Commander",name:"Nom",phone:"Téléphone",address:"Adresse",paymentMethod:"Moyen de paiement",payWhatsApp:"Confirmer avec le propriétaire sur WhatsApp",payCOD:"Paiement à la livraison (confirmez avec le propriétaire si disponible)",submitOrder:"Envoyer la commande et générer le QR code WhatsApp",enterShop:"Entrer dans la boutique →",close:"Fermer",prev:"‹ Précédent",next:"Suivant ›",clickOutside:"Cliquez en dehors de l'image pour fermer. Vous pouvez aussi pincer pour zoomer sur mobile.",thankYou:"Merci de votre visite.",ownerDashboard:"Tableau de bord du propriétaire",ownerOnly:"Seul le compte du propriétaire peut se connecter. Créez d'abord le compte dans Supabase > Authentication et désactivez les inscriptions publiques dans Supabase avant de publier.",ownerEmail:"E-mail du propriétaire",password:"Mot de passe",ownerLogin:"Connexion du propriétaire",logout:"Se déconnecter",shopSettings:"Paramètres de la boutique",shopName:"Nom de la boutique",whatsapp:"Numéro WhatsApp",welcomeNotice:"Message de bienvenue",saveSettings:"Enregistrer les paramètres",welcomePage:"Page d'accueil",welcomeBg:"Lien de l'image de fond d'accueil",saveWelcomeBg:"Enregistrer le fond d'accueil",welcomeBgHint:"Téléchargez d'abord la photo de fond dans Supabase Storage (bucket product-images), copiez son lien public et collez-le ici. Les clients la verront en plein écran sur la page d'ouverture.",addNewProduct:"Ajouter un nouveau produit",productName:"Nom du produit",price:"Prix",categoryLabel:"Catégorie",imageLinks:"Liens d'images (un par ligne)",description:"Description",addProduct:"Ajouter un produit",myProducts:"Mes produits",customerOrders:"Commandes des clients",noOrders:"Aucune commande pour le moment.",ordersHint:"Les commandes fonctionnent de deux façons : une commande est enregistrée dans la base de données et apparaît ici, et si le client scanne le QR code WhatsApp et appuie sur Envoyer dans WhatsApp, le propriétaire la reçoit aussi dans WhatsApp.",saveChanges:"Enregistrer les modifications",unlist:"Retirer de la liste",listAgain:"Remettre en liste",delete:"Supprimer",markProcessed:"Marquer comme traité",loggedInAs:"Connecté en tant que propriétaire : ",noProductsYet:"Aucun produit pour le moment.",deliveryTo:"Livraison à : ",welcome:"Bienvenue",noticeText:"Parcourez les produits et passez votre commande. Langues disponibles : cliquez sur le bouton 🌐 Langue en haut à droite et choisissez vous-même votre langue — la boutique ne change pas de langue automatiquement, et toute la page, y compris les noms des produits, sera traduite dans la langue choisie. Cliquez sur l'image d'un produit pour l'agrandir. Si un produit a plusieurs images, cliquez sur une miniature pour changer, puis sur l'image principale pour l'agrandir. Le QR code WhatsApp est un code de discussion, pas un code de paiement : vous devez appuyer sur Envoyer dans WhatsApp pour que le propriétaire reçoive votre commande. Confirmez le paiement avec le propriétaire dans WhatsApp.",langMenuNote:"<strong>Langues disponibles — c'est vous qui choisissez.</strong><br>La boutique ne change pas de langue automatiquement. Touchez une langue ci-dessous.",alertLogin:"Connectez-vous d'abord en tant que propriétaire.",alertDemo:"Les données de démonstration ne sont pas connectées à une base de données, les modifications ne seront donc pas synchronisées avec les clients. Déployez d'abord.",alertNamePrice:"Entrez le nom et le prix du produit",alertSaved:"Enregistré. Les clients verront le nouveau prix en direct.",alertAdded:"Produit ajouté. Les clients le verront en direct.",alertFillCheckout:"Entrez le nom, le téléphone et l'adresse",alertCartEmpty:"Votre panier est vide",alertDeleteConfirm:"Voulez-vous vraiment supprimer ce produit ?",alertSaveFailed:"Échec de l'enregistrement : ",alertAddFailed:"Échec de l'ajout : ",alertDeleteFailed:"Échec de la suppression : ",alertOpFailed:"Opération échouée : ",alertWhatsAppDigits:"Numéro WhatsApp : chiffres uniquement, avec l'indicatif du pays, sans +, 8 à 15 chiffres.",alertFillLogin:"Entrez votre e-mail et votre mot de passe.",alertLoginFailed:"Échec de la connexion : ",alertDemoLogin:"Remplissez d'abord l'URL Supabase et la clé publique et déployez. Le fichier de démonstration local ne peut pas se connecter pour de vrai.",orderCreated:"Commande créée : ",includingShipping:"livraison incluse",savedToDashboard:"Enregistré dans le tableau de bord du propriétaire",openWhatsApp:"Cliquez ici pour ouvrir WhatsApp et envoyer la commande au propriétaire",pressSend:"Appuyez sur Envoyer dans WhatsApp après le scan, sinon le propriétaire ne la recevra pas.",noWhatsApp:"Le propriétaire n'a pas encore saisi de numéro WhatsApp, le QR code ne peut donc pas être généré.",chatNotPayment:"Remarque : ceci n'est qu'une confirmation par discussion, pas un paiement automatique. Confirmez le paiement avec le propriétaire dans WhatsApp.",listed:"Listé",unlisted:"Non listé",demoNotice:"Données de démonstration, non connectées à une base de données : ce fichier n'a pas encore d'URL Supabase ni de clé publique, les modifications n'existent donc que dans ce navigateur et les clients ne peuvent pas les voir. Remplissez-les et déployez, et les produits, prix et commandes vivront sur le serveur et seront visibles par tous les visiteurs en direct."},
+ar:{cart:"عربة التسوق",refresh:"تحديث المنتجات",language:"اللغة",search:"البحث عن المنتجات",searchPlaceholder:"مثال: لعبة للحيوانات الأليفة",category:"الفئة",all:"الكل",loading:"جارٍ تحميل المنتجات...",noProducts:"لم يتم العثور على منتجات.",stock:"المخزون",soldOut:"نفدت الكمية",addToCart:"أضف إلى العربة",clickEnlarge:"انقر على الصورة لتكبيرها",images:"صور",clearCart:"إفراغ العربة",cartEmpty:"عربتك فارغة.",subtotal:"المجموع الفرعي",shipping:"الشحن",total:"المجموع",checkout:"إتمام الطلب",name:"الاسم",phone:"الهاتف",address:"العنوان",paymentMethod:"طريقة الدفع",payWhatsApp:"التأكيد مع المالك على واتساب",payCOD:"الدفع عند الاستلام (أكّد مع المالك إن كان متاحًا)",submitOrder:"إرسال الطلب وإنشاء رمز واتساب",enterShop:"ادخل إلى المتجر →",close:"إغلاق",prev:"‹ السابق",next:"التالي ›",clickOutside:"انقر خارج الصورة للإغلاق. يمكنك أيضًا التكبير بالقرص على الجوال.",thankYou:"شكرًا لزيارتك.",ownerDashboard:"لوحة تحكم المالك",ownerOnly:"حساب المالك فقط يمكنه تسجيل الدخول. أنشئ الحساب أولًا في Supabase > Authentication، وأوقف التسجيل العام في Supabase قبل النشر.",ownerEmail:"بريد المالك الإلكتروني",password:"كلمة المرور",ownerLogin:"تسجيل دخول المالك",logout:"تسجيل الخروج",shopSettings:"إعدادات المتجر",shopName:"اسم المتجر",whatsapp:"رقم واتساب",welcomeNotice:"إشعار الترحيب",saveSettings:"حفظ الإعدادات",welcomePage:"صفحة الترحيب",welcomeBg:"رابط صورة خلفية الترحيب",saveWelcomeBg:"حفظ خلفية الترحيب",welcomeBgHint:"ارفع صورة الخلفية أولًا إلى Supabase Storage (حاوية product-images)، وانسخ رابطها العام والصقه هنا. سيراها العملاء بملء الشاشة في صفحة الافتتاح.",addNewProduct:"إضافة منتج جديد",productName:"اسم المنتج",price:"السعر",categoryLabel:"الفئة",imageLinks:"روابط الصور (رابط في كل سطر)",description:"الوصف",addProduct:"إضافة منتج",myProducts:"منتجاتي",customerOrders:"طلبات العملاء",noOrders:"لا توجد طلبات بعد.",ordersHint:"الطلبات تعمل بطريقتين: يُحفظ طلب العميل في قاعدة البيانات ويظهر هنا، وإذا مسح العميل رمز واتساب وضغط إرسال في واتساب، يتلقاه المالك أيضًا في واتساب.",saveChanges:"حفظ التغييرات",unlist:"إزالة من القائمة",listAgain:"إعادة الإدراج",delete:"حذف",markProcessed:"وضع علامة تمت المعالجة",loggedInAs:"تم تسجيل الدخول كمالك: ",noProductsYet:"لا توجد منتجات بعد.",deliveryTo:"التوصيل إلى: ",welcome:"أهلاً وسهلاً",noticeText:"تصفح المنتجات وقدّم طلبك. اللغات المتاحة: انقر زر 🌐 اللغة أعلى اليمين واختر لغتك بنفسك — المتجر لا يغيّر اللغة تلقائيًا، وستُترجم الصفحة كلها، بما فيها أسماء المنتجات، إلى اللغة التي تختارها. انقر صورة المنتج لتكبيرها. إذا كان للمنتج عدة صور، انقر مصغّرة للتبديل ثم الصورة الرئيسية للتكبير. رمز واتساب هو رمز محادثة وليس رمز دفع: يجب أن تضغط إرسال في واتساب ليتلقى المالك طلبك. أكّد الدفع مع المالك في واتساب.",langMenuNote:"<strong>لغات متاحة — أنت تختار بنفسك.</strong><br>المتجر لا يغيّر اللغة تلقائيًا. المس لغة أدناه.",alertLogin:"سجّل الدخول كمالك أولًا.",alertDemo:"بيانات العرض غير متصلة بقاعدة بيانات، لذا لن تُزامن التغييرات مع العملاء. انشر أولًا.",alertNamePrice:"أدخل اسم المنتج وسعره",alertSaved:"تم الحفظ. سيرى العملاء السعر الجديد مباشرة.",alertAdded:"تمت إضافة المنتج. سيراه العملاء مباشرة.",alertFillCheckout:"أدخل الاسم والهاتف والعنوان",alertCartEmpty:"عربتك فارغة",alertDeleteConfirm:"هل أنت متأكد من حذف هذا المنتج؟",alertSaveFailed:"فشل الحفظ: ",alertAddFailed:"فشلت الإضافة: ",alertDeleteFailed:"فشل الحذف: ",alertOpFailed:"فشلت العملية: ",alertWhatsAppDigits:"رقم واتساب: أرقام فقط، مع رمز الدولة، بدون +، من 8 إلى 15 رقمًا.",alertFillLogin:"أدخل بريدك الإلكتروني وكلمة المرور.",alertLoginFailed:"فشل تسجيل الدخول: ",alertDemoLogin:"املأ أولًا رابط Supabase والمفتاح العام وانشر. ملف العرض المحلي لا يمكنه تسجيل الدخول فعلًا.",orderCreated:"تم إنشاء الطلب: ",includingShipping:"شامل الشحن",savedToDashboard:"تم الحفظ في لوحة تحكم المالك",openWhatsApp:"انقر هنا لفتح واتساب وإرسال الطلب إلى المالك",pressSend:"اضغط إرسال في واتساب بعد المسح، وإلا لن يتلقاه المالك.",noWhatsApp:"لم يُدخل المالك رقم واتساب بعد، لذا لا يمكن إنشاء رمز.",chatNotPayment:"ملاحظة: هذا تأكيد محادثة فقط، وليس دفعًا تلقائيًا. أكّد الدفع مع المالك في واتساب.",listed:"مُدرج",unlisted:"غير مُدرج",demoNotice:"بيانات عرض غير متصلة بقاعدة بيانات: هذا الملف ليس فيه رابط Supabase ولا مفتاح عام بعد، لذا التغييرات موجودة في هذا المتصفح فقط ولا يراها العملاء. املأهما وانشر، وستعيش المنتجات والأسعار والطلبات على الخادم ويراها كل الزوار مباشرة."},
+ru:{cart:"Корзина",refresh:"Обновить товары",language:"Язык",search:"Поиск товаров",searchPlaceholder:"напр. игрушка для питомца",category:"Категория",all:"Все",loading:"Загрузка товаров...",noProducts:"Товары не найдены.",stock:"В наличии",soldOut:"Распродано",addToCart:"Добавить в корзину",clickEnlarge:"Нажмите на изображение, чтобы увеличить",images:"изображений",clearCart:"Очистить корзину",cartEmpty:"Ваша корзина пуста.",subtotal:"Подытог",shipping:"Доставка",total:"Итого",checkout:"Оформить заказ",name:"Имя",phone:"Телефон",address:"Адрес",paymentMethod:"Способ оплаты",payWhatsApp:"Подтвердить с владельцем в WhatsApp",payCOD:"Оплата при получении (уточните у владельца, поддерживается ли)",submitOrder:"Отправить заказ и создать QR-код WhatsApp",enterShop:"Войти в магазин →",close:"Закрыть",prev:"‹ Назад",next:"Далее ›",clickOutside:"Нажмите вне изображения, чтобы закрыть. На телефоне можно также увеличить щипком.",thankYou:"Спасибо за визит.",ownerDashboard:"Панель владельца",ownerOnly:"Войти может только учётная запись владельца. Сначала создайте учётную запись в Supabase > Authentication и отключите публичную регистрацию в Supabase перед публикацией.",ownerEmail:"Эл. почта владельца",password:"Пароль",ownerLogin:"Вход владельца",logout:"Выйти",shopSettings:"Настройки магазина",shopName:"Название магазина",whatsapp:"Номер WhatsApp",welcomeNotice:"Приветственное сообщение",saveSettings:"Сохранить настройки",welcomePage:"Страница приветствия",welcomeBg:"Ссылка на фоновое изображение приветствия",saveWelcomeBg:"Сохранить фон приветствия",welcomeBgHint:"Сначала загрузите фоновое фото в Supabase Storage (корзина product-images), скопируйте его публичную ссылку и вставьте сюда. Клиенты увидят его на весь экран на странице открытия.",addNewProduct:"Добавить новый товар",productName:"Название товара",price:"Цена",categoryLabel:"Категория",imageLinks:"Ссылки на изображения (по одной в строке)",description:"Описание",addProduct:"Добавить товар",myProducts:"Мои товары",customerOrders:"Заказы клиентов",noOrders:"Заказов пока нет.",ordersHint:"Заказы работают двумя способами: заказ клиента сохраняется в базе данных и появляется здесь, а если клиент отсканирует QR-код WhatsApp и нажмёт Отправить в WhatsApp, владелец также получит его в WhatsApp.",saveChanges:"Сохранить изменения",unlist:"Снять с публикации",listAgain:"Опубликовать снова",delete:"Удалить",markProcessed:"Отметить как обработанный",loggedInAs:"Вы вошли как владелец: ",noProductsYet:"Товаров пока нет.",deliveryTo:"Доставка: ",welcome:"Добро пожаловать",noticeText:"Просматривайте товары и оформляйте заказ. Доступные языки: нажмите кнопку 🌐 Язык вверху справа и выберите язык сами — магазин не меняет язык автоматически, и вся страница, включая названия товаров, будет переведена на выбранный вами язык. Нажмите на изображение товара, чтобы увеличить его. Если у товара несколько изображений, нажмите миниатюру, чтобы переключиться, затем основное изображение, чтобы увеличить. QR-код WhatsApp — это код чата, а не оплаты: вы должны нажать Отправить в WhatsApp, чтобы владелец получил ваш заказ. Подтвердите оплату с владельцем в WhatsApp.",langMenuNote:"<strong>Доступные языки — вы выбираете сами.</strong><br>Магазин не меняет язык автоматически. Нажмите язык ниже.",alertLogin:"Сначала войдите как владелец.",alertDemo:"Демо-данные не подключены к базе данных, поэтому изменения не синхронизируются с клиентами. Сначала разверните.",alertNamePrice:"Введите название и цену товара",alertSaved:"Сохранено. Клиенты увидят новую цену в реальном времени.",alertAdded:"Товар добавлен. Клиенты увидят его в реальном времени.",alertFillCheckout:"Введите имя, телефон и адрес",alertCartEmpty:"Ваша корзина пуста",alertDeleteConfirm:"Вы уверены, что хотите удалить этот товар?",alertSaveFailed:"Ошибка сохранения: ",alertAddFailed:"Ошибка добавления: ",alertDeleteFailed:"Ошибка удаления: ",alertOpFailed:"Ошибка операции: ",alertWhatsAppDigits:"Номер WhatsApp: только цифры, с кодом страны, без +, от 8 до 15 цифр.",alertFillLogin:"Введите эл. почту и пароль.",alertLoginFailed:"Ошибка входа: ",alertDemoLogin:"Сначала заполните URL Supabase и публичный ключ и разверните. Локальный демо-файл не может войти по-настоящему.",orderCreated:"Заказ создан: ",includingShipping:"включая доставку",savedToDashboard:"Сохранено в панели владельца",openWhatsApp:"Нажмите здесь, чтобы открыть WhatsApp и отправить заказ владельцу",pressSend:"Нажмите Отправить в WhatsApp после сканирования, иначе владелец не получит его.",noWhatsApp:"Владелец ещё не ввёл номер WhatsApp, поэтому QR-код создать нельзя.",chatNotPayment:"Примечание: это только подтверждение в чате, а не автоматическая оплата. Подтвердите оплату с владельцем в WhatsApp.",listed:"Опубликован",unlisted:"Снят с публикации",demoNotice:"Демо-данные, не подключённые к базе данных: в этом файле ещё нет URL Supabase и публичного ключа, поэтому изменения существуют только в этом браузере, и клиенты их не видят. Заполните их и разверните, и товары, цены и заказы будут жить на сервере и будут видны всем посетителям в реальном времени."},
+pt:{cart:"Carrinho",refresh:"Atualizar produtos",language:"Idioma",search:"Pesquisar produtos",searchPlaceholder:"ex.: brinquedo para pet",category:"Categoria",all:"Todos",loading:"Carregando produtos...",noProducts:"Nenhum produto encontrado.",stock:"Estoque",soldOut:"Esgotado",addToCart:"Adicionar ao carrinho",clickEnlarge:"Clique na imagem para ampliar",images:"imagens",clearCart:"Limpar carrinho",cartEmpty:"Seu carrinho está vazio.",subtotal:"Subtotal",shipping:"Frete",total:"Total",checkout:"Finalizar compra",name:"Nome",phone:"Telefone",address:"Endereço",paymentMethod:"Método de pagamento",payWhatsApp:"Confirmar com o proprietário no WhatsApp",payCOD:"Pagamento na entrega (confirme com o proprietário se disponível)",submitOrder:"Enviar pedido e gerar QR code do WhatsApp",enterShop:"Entrar na loja →",close:"Fechar",prev:"‹ Anterior",next:"Próximo ›",clickOutside:"Clique fora da imagem para fechar. Você também pode pinçar para ampliar no celular.",thankYou:"Obrigado pela visita.",ownerDashboard:"Painel do proprietário",ownerOnly:"Somente a conta do proprietário pode entrar. Crie a conta primeiro em Supabase > Authentication e desative inscrições públicas no Supabase antes de publicar.",ownerEmail:"E-mail do proprietário",password:"Senha",ownerLogin:"Login do proprietário",logout:"Sair",shopSettings:"Configurações da loja",shopName:"Nome da loja",whatsapp:"Número do WhatsApp",welcomeNotice:"Aviso de boas-vindas",saveSettings:"Salvar configurações",welcomePage:"Página de boas-vindas",welcomeBg:"Link da imagem de fundo de boas-vindas",saveWelcomeBg:"Salvar fundo de boas-vindas",welcomeBgHint:"Envie primeiro a foto de fundo para o Supabase Storage (bucket product-images), copie o link público e cole aqui. Os clientes a verão em tela cheia na página de abertura.",addNewProduct:"Adicionar novo produto",productName:"Nome do produto",price:"Preço",categoryLabel:"Categoria",imageLinks:"Links de imagens (um por linha)",description:"Descrição",addProduct:"Adicionar produto",myProducts:"Meus produtos",customerOrders:"Pedidos de clientes",noOrders:"Ainda não há pedidos.",ordersHint:"Os pedidos funcionam de duas formas: um pedido é salvo no banco de dados e aparece aqui, e se o cliente escanear o QR code do WhatsApp e apertar Enviar no WhatsApp, o proprietário também o recebe no WhatsApp.",saveChanges:"Salvar alterações",unlist:"Remover da lista",listAgain:"Listar novamente",delete:"Excluir",markProcessed:"Marcar como processado",loggedInAs:"Logado como proprietário: ",noProductsYet:"Ainda não há produtos.",deliveryTo:"Entrega para: ",welcome:"Bem-vindo",noticeText:"Navegue pelos produtos e faça seu pedido. Idiomas disponíveis: clique no botão 🌐 Idioma no canto superior direito e escolha você mesmo o idioma — a loja não muda de idioma automaticamente, e toda a página, incluindo os nomes dos produtos, será traduzida para o idioma escolhido. Clique na imagem de um produto para ampliá-la. Se um produto tiver várias imagens, clique em uma miniatura para trocar e depois na imagem principal para ampliar. O QR code do WhatsApp é um código de conversa, não de pagamento: você deve apertar Enviar no WhatsApp para que o proprietário receba seu pedido. Confirme o pagamento com o proprietário no WhatsApp.",langMenuNote:"<strong>Idiomas disponíveis — você escolhe.</strong><br>A loja não muda de idioma automaticamente. Toque em um idioma abaixo.",alertLogin:"Entre como proprietário primeiro.",alertDemo:"Os dados de demonstração não estão conectados a um banco de dados, então as alterações não serão sincronizadas com os clientes. Implante primeiro.",alertNamePrice:"Digite o nome e o preço do produto",alertSaved:"Salvo. Os clientes verão o novo preço ao vivo.",alertAdded:"Produto adicionado. Os clientes o verão ao vivo.",alertFillCheckout:"Digite nome, telefone e endereço",alertCartEmpty:"Seu carrinho está vazio",alertDeleteConfirm:"Tem certeza de que deseja excluir este produto?",alertSaveFailed:"Falha ao salvar: ",alertAddFailed:"Falha ao adicionar: ",alertDeleteFailed:"Falha ao excluir: ",alertOpFailed:"Falha na operação: ",alertWhatsAppDigits:"Número do WhatsApp: somente dígitos, com código do país, sem +, de 8 a 15 dígitos.",alertFillLogin:"Digite seu e-mail e senha.",alertLoginFailed:"Falha no login: ",alertDemoLogin:"Preencha primeiro a URL do Supabase e a chave pública e implante. O arquivo de demonstração local não pode entrar de verdade.",orderCreated:"Pedido criado: ",includingShipping:"incluindo frete",savedToDashboard:"Salvo no painel do proprietário",openWhatsApp:"Clique aqui para abrir o WhatsApp e enviar o pedido ao proprietário",pressSend:"Aperte Enviar no WhatsApp após escanear, senão o proprietário não o receberá.",noWhatsApp:"O proprietário ainda não inseriu um número de WhatsApp, então um QR code não pode ser gerado.",chatNotPayment:"Nota: isto é apenas uma confirmação por conversa, não um pagamento automático. Confirme o pagamento com o proprietário no WhatsApp.",listed:"Listado",unlisted:"Não listado",demoNotice:"Dados de demonstração, não conectados a um banco de dados: este arquivo ainda não tem URL do Supabase nem chave pública, então as alterações só existem neste navegador e os clientes não podem vê-las. Preencha-os e implante, e os produtos, preços e pedidos viverão no servidor e serão visíveis para todos os visitantes ao vivo."},
+hi:{cart:"कार्ट",refresh:"उत्पाद रिफ्रेश करें",language:"भाषा",search:"उत्पाद खोजें",searchPlaceholder:"जैसे: पालतू खिलौना",category:"श्रेणी",all:"सभी",loading:"उत्पाद लोड हो रहे हैं...",noProducts:"कोई उत्पाद नहीं मिला।",stock:"स्टॉक",soldOut:"बिक गया",addToCart:"कार्ट में जोड़ें",clickEnlarge:"बड़ा देखने के लिए चित्र पर क्लिक करें",images:"चित्र",clearCart:"कार्ट साफ़ करें",cartEmpty:"आपका कार्ट खाली है।",subtotal:"उप-योग",shipping:"शिपिंग",total:"कुल",checkout:"चेकआउट",name:"नाम",phone:"फ़ोन",address:"पता",paymentMethod:"भुगतान विधि",payWhatsApp:"WhatsApp पर मालिक से पुष्टि करें",payCOD:"कैश ऑन डिलीवरी (मालिक से पुष्टि करें कि उपलब्ध है)",submitOrder:"ऑर्डर भेजें और WhatsApp QR कोड बनाएं",enterShop:"दुकान में प्रवेश करें →",close:"बंद करें",prev:"‹ पिछला",next:"अगला ›",clickOutside:"बंद करने के लिए चित्र के बाहर क्लिक करें। मोबाइल पर पिंच करके भी ज़ूम कर सकते हैं।",thankYou:"आने के लिए धन्यवाद।",ownerDashboard:"मालिक डैशबोर्ड",ownerOnly:"केवल मालिक खाता लॉगिन कर सकता है। पहले Supabase > Authentication में खाता बनाएं, और लाइव होने से पहले सार्वजनिक साइन-अप बंद करें।",ownerEmail:"मालिक ईमेल",password:"पासवर्ड",ownerLogin:"मालिक लॉगिन",logout:"लॉग आउट",shopSettings:"दुकान सेटिंग्स",shopName:"दुकान का नाम",whatsapp:"WhatsApp नंबर",welcomeNotice:"स्वागत सूचना",saveSettings:"सेटिंग्स सहेजें",welcomePage:"स्वागत पृष्ठ",welcomeBg:"स्वागत पृष्ठभूमि चित्र लिंक",saveWelcomeBg:"स्वागत पृष्ठभूमि सहेजें",welcomeBgHint:"पहले पृष्ठभूमि फोटो को Supabase Storage (product-images बकेट) में अपलोड करें, उसका सार्वजनिक लिंक कॉपी करें और यहाँ पेस्ट करें। ग्राहक इसे शुरुआती पृष्ठ पर पूर्ण स्क्रीन में देखेंगे।",addNewProduct:"नया उत्पाद जोड़ें",productName:"उत्पाद का नाम",price:"कीमत",categoryLabel:"श्रेणी",imageLinks:"चित्र लिंक (प्रति पंक्ति एक)",description:"विवरण",addProduct:"उत्पाद जोड़ें",myProducts:"मेरे उत्पाद",customerOrders:"ग्राहक ऑर्डर",noOrders:"अभी कोई ऑर्डर नहीं है।",ordersHint:"ऑर्डर दो तरह से काम करते हैं: ग्राहक ऑर्डर डेटाबेस में सहेजा जाता है और यहाँ दिखता है, और यदि ग्राहक WhatsApp QR कोड स्कैन करके WhatsApp में भेजें दबाता है, तो मालिक को भी वही ऑर्डर WhatsApp में मिलता है।",saveChanges:"बदलाव सहेजें",unlist:"सूची से हटाएं",listAgain:"फिर से सूचीबद्ध करें",delete:"हटाएं",markProcessed:"प्रसंस्कृत के रूप में चिह्नित करें",loggedInAs:"मालिक के रूप में लॉगिन: ",noProductsYet:"अभी कोई उत्पाद नहीं है।",deliveryTo:"डिलीवरी: ",welcome:"स्वागत है",noticeText:"उत्पाद देखें और ऑर्डर करें। भाषाएं उपलब्ध हैं: ऊपर दाईं ओर 🌐 भाषा बटन पर क्लिक करें और अपनी भाषा खुद चुनें — दुकान भाषा अपने आप नहीं बदलती, और पूरा पृष्ठ, उत्पाद नामों सहित, आपकी चुनी भाषा में अनुवादित हो जाएगा। उत्पाद चित्र पर क्लिक करके बड़ा देखें। यदि किसी उत्पाद की कई चित्र हैं, तो बदलने के लिए थंबनेल पर क्लिक करें, फिर मुख्य चित्र पर क्लिक करके बड़ा देखें। WhatsApp QR कोड चैट QR कोड है, भुगतान कोड नहीं: मालिक को ऑर्डर मिलने के लिए आपको WhatsApp में भेजें दबाना होगा। भुगतान WhatsApp में मालिक से पुष्टि करें।",langMenuNote:"<strong>भाषाएं उपलब्ध हैं — आप खुद चुनते हैं।</strong><br>दुकान भाषा अपने आप नहीं बदलती। नीचे एक भाषा चुनें।",alertLogin:"पहले मालिक के रूप में लॉगिन करें।",alertDemo:"डेमो डेटा डेटाबेस से जुड़ा नहीं है, इसलिए बदलाव ग्राहकों के साथ सिंक नहीं होंगे। पहले डिप्लॉय करें।",alertNamePrice:"उत्पाद का नाम और कीमत दर्ज करें",alertSaved:"सहेजा गया। ग्राहक नई कीमत लाइव देखेंगे।",alertAdded:"उत्पाद जोड़ा गया। ग्राहक इसे लाइव देखेंगे।",alertFillCheckout:"नाम, फ़ोन और पता दर्ज करें",alertCartEmpty:"आपका कार्ट खाली है",alertDeleteConfirm:"क्या आप वाकई यह उत्पाद हटाना चाहते हैं?",alertSaveFailed:"सहेजना विफल: ",alertAddFailed:"जोड़ना विफल: ",alertDeleteFailed:"हटाना विफल: ",alertOpFailed:"कार्रवाई विफल: ",alertWhatsAppDigits:"WhatsApp नंबर: केवल अंक, देश कोड सहित, + के बिना, 8 से 15 अंक।",alertFillLogin:"अपना ईमेल और पासवर्ड दर्ज करें।",alertLoginFailed:"लॉगिन विफल: ",alertDemoLogin:"पहले Supabase URL और सार्वजनिक कुंजी भरें और डिप्लॉय करें। स्थानीय डेमो फ़ाइल वास्तव में लॉगिन नहीं कर सकती।",orderCreated:"ऑर्डर बनाया गया: ",includingShipping:"शिपिंग सहित",savedToDashboard:"मालिक डैशबोर्ड में सहेजा गया",openWhatsApp:"WhatsApp खोलकर ऑर्डर मालिक को भेजने के लिए यहाँ क्लिक करें",pressSend:"स्कैन करने के बाद WhatsApp में भेजें दबाएं, नहीं तो मालिक को नहीं मिलेगा।",noWhatsApp:"मालिक ने अभी WhatsApp नंबर नहीं डाला है, इसलिए QR कोड नहीं बन सकता।",chatNotPayment:"नोट: यह केवल चैट पुष्टि है, स्वचालित भुगतान नहीं। भुगतान WhatsApp में मालिक से पुष्टि करें।",listed:"सूचीबद्ध",unlisted:"सूची से हटाया गया",demoNotice:"डेमो डेटा, डेटाबेस से जुड़ा नहीं है: इस फ़ाइल में अभी Supabase URL और सार्वजनिक कुंजी नहीं भरी गई है, इसलिए बदलाव केवल इस ब्राउज़र में मौजूद हैं और ग्राहक उन्हें नहीं देख सकते। उन्हें भरें और डिप्लॉय करें, और उत्पाद, कीमतें और ऑर्डर सर्वर पर रहेंगे और सभी आगंतुकों को लाइव दिखेंगे।"},
+de:{cart:"Warenkorb",refresh:"Produkte aktualisieren",language:"Sprache",search:"Produkte suchen",searchPlaceholder:"z. B. Haustierspielzeug",category:"Kategorie",all:"Alle",loading:"Produkte werden geladen...",noProducts:"Keine Produkte gefunden.",stock:"Bestand",soldOut:"Ausverkauft",addToCart:"In den Warenkorb",clickEnlarge:"Klicken Sie auf das Bild, um es zu vergrößern",images:"Bilder",clearCart:"Warenkorb leeren",cartEmpty:"Ihr Warenkorb ist leer.",subtotal:"Zwischensumme",shipping:"Versand",total:"Gesamt",checkout:"Zur Kasse",name:"Name",phone:"Telefon",address:"Adresse",paymentMethod:"Zahlungsmethode",payWhatsApp:"Mit dem Inhaber auf WhatsApp bestätigen",payCOD:"Nachnahme (bitte beim Inhaber bestätigen, ob verfügbar)",submitOrder:"Bestellung senden und WhatsApp-QR-Code erstellen",enterShop:"Shop betreten →",close:"Schließen",prev:"‹ Zurück",next:"Weiter ›",clickOutside:"Klicken Sie außerhalb des Bildes, um zu schließen. Auf dem Handy können Sie auch mit zwei Fingern zoomen.",thankYou:"Vielen Dank für Ihren Besuch.",ownerDashboard:"Inhaber-Dashboard",ownerOnly:"Nur das Inhaberkonto kann sich anmelden. Erstellen Sie zuerst das Konto in Supabase > Authentication und deaktivieren Sie öffentliche Anmeldungen in Supabase, bevor Sie live gehen.",ownerEmail:"Inhaber-E-Mail",password:"Passwort",ownerLogin:"Inhaber-Login",logout:"Abmelden",shopSettings:"Shop-Einstellungen",shopName:"Shopname",whatsapp:"WhatsApp-Nummer",welcomeNotice:"Willkommenshinweis",saveSettings:"Einstellungen speichern",welcomePage:"Willkommensseite",welcomeBg:"Link zum Willkommens-Hintergrundbild",saveWelcomeBg:"Willkommenshintergrund speichern",welcomeBgHint:"Laden Sie zuerst das Hintergrundfoto in Supabase Storage (Bucket product-images) hoch, kopieren Sie den öffentlichen Link und fügen Sie ihn hier ein. Kunden sehen ihn auf der Startseite im Vollbild.",addNewProduct:"Neues Produkt hinzufügen",productName:"Produktname",price:"Preis",categoryLabel:"Kategorie",imageLinks:"Bildlinks (einer pro Zeile)",description:"Beschreibung",addProduct:"Produkt hinzufügen",myProducts:"Meine Produkte",customerOrders:"Kundenbestellungen",noOrders:"Noch keine Bestellungen.",ordersHint:"Bestellungen funktionieren auf zwei Wegen: Eine Kundenbestellung wird in der Datenbank gespeichert und erscheint hier, und wenn der Kunde den WhatsApp-QR-Code scannt und in WhatsApp auf Senden drückt, erhält der Inhaber dieselbe Bestellung auch in WhatsApp.",saveChanges:"Änderungen speichern",unlist:"Aus der Liste entfernen",listAgain:"Wieder listen",delete:"Löschen",markProcessed:"Als bearbeitet markieren",loggedInAs:"Angemeldet als Inhaber: ",noProductsYet:"Noch keine Produkte.",deliveryTo:"Lieferung an: ",welcome:"Willkommen",noticeText:"Stöbern Sie durch die Produkte und bestellen Sie. Verfügbare Sprachen: Klicken Sie oben rechts auf die Schaltfläche 🌐 Sprache und wählen Sie Ihre Sprache selbst — der Shop ändert die Sprache nicht automatisch, und die gesamte Seite, einschließlich der Produktnamen, wird in die von Ihnen gewählte Sprache übersetzt. Klicken Sie auf ein Produktbild, um es zu vergrößern. Hat ein Produkt mehrere Bilder, klicken Sie auf ein Vorschaubild zum Wechseln und dann auf das Hauptbild zum Vergrößern. Der WhatsApp-QR-Code ist ein Chat-QR-Code, kein Zahlungscode: Sie müssen in WhatsApp auf Senden drücken, damit der Inhaber Ihre Bestellung erhält. Bestätigen Sie die Zahlung mit dem Inhaber in WhatsApp.",langMenuNote:"<strong>Verfügbare Sprachen — Sie wählen selbst.</strong><br>Der Shop ändert die Sprache nicht automatisch. Tippen Sie unten auf eine Sprache.",alertLogin:"Melden Sie sich zuerst als Inhaber an.",alertDemo:"Demodaten sind nicht mit einer Datenbank verbunden, daher werden Änderungen nicht mit Kunden synchronisiert. Stellen Sie zuerst bereit.",alertNamePrice:"Geben Sie Produktname und Preis ein",alertSaved:"Gespeichert. Kunden sehen den neuen Preis live.",alertAdded:"Produkt hinzugefügt. Kunden sehen es live.",alertFillCheckout:"Geben Sie Name, Telefon und Adresse ein",alertCartEmpty:"Ihr Warenkorb ist leer",alertDeleteConfirm:"Möchten Sie dieses Produkt wirklich löschen?",alertSaveFailed:"Speichern fehlgeschlagen: ",alertAddFailed:"Hinzufügen fehlgeschlagen: ",alertDeleteFailed:"Löschen fehlgeschlagen: ",alertOpFailed:"Vorgang fehlgeschlagen: ",alertWhatsAppDigits:"WhatsApp-Nummer: nur Ziffern, mit Ländervorwahl, ohne +, 8 bis 15 Ziffern.",alertFillLogin:"Geben Sie Ihre E-Mail und Ihr Passwort ein.",alertLoginFailed:"Anmeldung fehlgeschlagen: ",alertDemoLogin:"Füllen Sie zuerst die Supabase-URL und den öffentlichen Schlüssel aus und stellen Sie bereit. Die lokale Demodatei kann sich nicht wirklich anmelden.",orderCreated:"Bestellung erstellt: ",includingShipping:"inklusive Versand",savedToDashboard:"Im Inhaber-Dashboard gespeichert",openWhatsApp:"Klicken Sie hier, um WhatsApp zu öffnen und die Bestellung an den Inhaber zu senden",pressSend:"Drücken Sie nach dem Scannen in WhatsApp auf Senden, sonst erhält der Inhaber sie nicht.",noWhatsApp:"Der Inhaber hat noch keine WhatsApp-Nummer eingegeben, daher kann kein QR-Code erstellt werden.",chatNotPayment:"Hinweis: Dies ist nur eine Chat-Bestätigung, keine automatische Zahlung. Bestätigen Sie die Zahlung mit dem Inhaber in WhatsApp.",listed:"Gelistet",unlisted:"Nicht gelistet",demoNotice:"Demodaten, nicht mit einer Datenbank verbunden: Diese Datei hat noch keine Supabase-URL und keinen öffentlichen Schlüssel, daher existieren Änderungen nur in diesem Browser und Kunden können sie nicht sehen. Füllen Sie sie aus und stellen Sie bereit, und Produkte, Preise und Bestellungen leben auf dem Server und sind für alle Besucher live sichtbar."}
+};
+const CAT_I18N = {
+en:{manageCategories:"Manage categories",manageCategoriesHint:"Categories are created automatically from products. Deleting a category below will unlist or delete all products in that category.",unlistAll:"Unlist all",deleteAllProducts:"Delete all products",noCategories:"No categories yet.",deleteCategoryConfirm:"Delete all products in this category? This cannot be undone.",categoryUnlisted:"All products in this category have been unlisted.",categoryDeleted:"All products in this category have been deleted.",noCategory:"No category",view:"View"},
+"zh-CN":{manageCategories:"分类管理",manageCategoriesHint:"分类是根据商品自动生成的。下面的删除会把这个分类下的商品全部下架或全部删除。",unlistAll:"全部下架",deleteAllProducts:"删除全部商品",noCategories:"暂无分类。",deleteCategoryConfirm:"确定要删除这个分类下的全部商品吗？删除后无法恢复。",categoryUnlisted:"这个分类下的商品已全部下架。",categoryDeleted:"这个分类下的商品已全部删除。",noCategory:"无分类",view:"查看"},
+es:{manageCategories:"Gestionar categorías",manageCategoriesHint:"Las categorías se crean automáticamente a partir de los productos. Eliminar una categoría abajo quitará de la lista o eliminará todos los productos de esa categoría.",unlistAll:"Quitar todos de la lista",deleteAllProducts:"Eliminar todos los productos",noCategories:"Aún no hay categorías.",deleteCategoryConfirm:"¿Eliminar todos los productos de esta categoría? Esto no se puede deshacer.",categoryUnlisted:"Todos los productos de esta categoría han sido quitados de la lista.",categoryDeleted:"Todos los productos de esta categoría han sido eliminados.",noCategory:"Sin categoría"},
+fr:{manageCategories:"Gérer les catégories",manageCategoriesHint:"Les catégories sont créées automatiquement à partir des produits. Supprimer une catégorie ci-dessous retirera de la liste ou supprimera tous les produits de cette catégorie.",unlistAll:"Retirer tous de la liste",deleteAllProducts:"Supprimer tous les produits",noCategories:"Aucune catégorie pour le moment.",deleteCategoryConfirm:"Supprimer tous les produits de cette catégorie ? Cela ne peut pas être annulé.",categoryUnlisted:"Tous les produits de cette catégorie ont été retirés de la liste.",categoryDeleted:"Tous les produits de cette catégorie ont été supprimés.",noCategory:"Sans catégorie"},
+ar:{manageCategories:"إدارة الفئات",manageCategoriesHint:"تُنشأ الفئات تلقائيًا من المنتجات. حذف فئة أدناه سيزيل إدراج جميع المنتجات في تلك الفئة أو يحذفها.",unlistAll:"إزالة إدراج الكل",deleteAllProducts:"حذف كل المنتجات",noCategories:"لا توجد فئات بعد.",deleteCategoryConfirm:"حذف كل المنتجات في هذه الفئة؟ لا يمكن التراجع عن هذا.",categoryUnlisted:"تمت إزالة إدراج كل المنتجات في هذه الفئة.",categoryDeleted:"تم حذف كل المنتجات في هذه الفئة.",noCategory:"بدون فئة"},
+ru:{manageCategories:"Управление категориями",manageCategoriesHint:"Категории создаются автоматически из товаров. Удаление категории ниже снимет с публикации или удалит все товары в этой категории.",unlistAll:"Снять все с публикации",deleteAllProducts:"Удалить все товары",noCategories:"Категорий пока нет.",deleteCategoryConfirm:"Удалить все товары в этой категории? Это нельзя отменить.",categoryUnlisted:"Все товары в этой категории сняты с публикации.",categoryDeleted:"Все товары в этой категории удалены.",noCategory:"Без категории"},
+pt:{manageCategories:"Gerenciar categorias",manageCategoriesHint:"As categorias são criadas automaticamente a partir dos produtos. Excluir uma categoria abaixo removerá da lista ou excluirá todos os produtos dessa categoria.",unlistAll:"Remover todos da lista",deleteAllProducts:"Excluir todos os produtos",noCategories:"Ainda não há categorias.",deleteCategoryConfirm:"Excluir todos os produtos desta categoria? Isso não pode ser desfeito.",categoryUnlisted:"Todos os produtos desta categoria foram removidos da lista.",categoryDeleted:"Todos os produtos desta categoria foram excluídos.",noCategory:"Sem categoria"},
+hi:{manageCategories:"श्रेणियाँ प्रबंधित करें",manageCategoriesHint:"श्रेणियाँ उत्पादों से अपने आप बनती हैं। नीचे किसी श्रेणी को हटाने से उस श्रेणी के सभी उत्पाद सूची से हट जाएंगे या हटा दिए जाएंगे।",unlistAll:"सभी को सूची से हटाएं",deleteAllProducts:"सभी उत्पाद हटाएं",noCategories:"अभी कोई श्रेणी नहीं है।",deleteCategoryConfirm:"इस श्रेणी के सभी उत्पाद हटाएं? इसे पूर्ववत नहीं किया जा सकता।",categoryUnlisted:"इस श्रेणी के सभी उत्पाद सूची से हटा दिए गए हैं।",categoryDeleted:"इस श्रेणी के सभी उत्पाद हटा दिए गए हैं।",noCategory:"कोई श्रेणी नहीं"},
+de:{manageCategories:"Kategorien verwalten",manageCategoriesHint:"Kategorien werden automatisch aus Produkten erstellt. Das Löschen einer Kategorie unten nimmt alle Produkte dieser Kategorie aus der Liste oder löscht sie.",unlistAll:"Alle aus der Liste entfernen",deleteAllProducts:"Alle Produkte löschen",noCategories:"Noch keine Kategorien.",deleteCategoryConfirm:"Alle Produkte dieser Kategorie löschen? Dies kann nicht rückgängig gemacht werden.",categoryUnlisted:"Alle Produkte dieser Kategorie wurden aus der Liste entfernt.",categoryDeleted:"Alle Produkte dieser Kategorie wurden gelöscht.",noCategory:"Keine Kategorie"}
+};
+function t(k){ return (I18N[currentLang] && I18N[currentLang][k]) || (CAT_I18N[currentLang] && CAT_I18N[currentLang][k]) || (I18N.en && I18N.en[k]) || (CAT_I18N.en && CAT_I18N.en[k]) || k; }
+function applyLang(){
+  document.documentElement.lang = currentLang;
+  document.querySelectorAll("[data-i18n]").forEach(function(el){ el.textContent = t(el.getAttribute("data-i18n")); });
+  document.querySelectorAll("[data-i18n-placeholder]").forEach(function(el){ el.placeholder = t(el.getAttribute("data-i18n-placeholder")); });
+  const langBtn = document.getElementById("langBtn"); if (langBtn) { const found = langOptions.find(function(l){ return l[0] === currentLang; }); langBtn.textContent = "🌐 " + (found ? found[1] : t("language")) + " ▾"; }
+  const refreshBtn = document.getElementById("refreshBtn"); if (refreshBtn) refreshBtn.textContent = t("refresh");
+  const cartBtn = document.getElementById("cartBtn"); if (cartBtn) cartBtn.innerHTML = t("cart") + ' (<span id="cartCount">0</span>)';
+  const note = document.getElementById("langMenuNote"); if (note) note.innerHTML = t("langMenuNote");
+  const noticeEl = document.getElementById("configNotice");
+  if (noticeEl && !settings.notice_text) noticeEl.innerHTML = "<strong>" + t("welcome") + "!</strong> " + t("noticeText");
+  const searchInput = document.getElementById("search"); if (searchInput) searchInput.placeholder = t("searchPlaceholder");
+  const pay = document.getElementById("payMethod");
+  if (pay && pay.options.length >= 1) { pay.options[0].text = t("payWhatsApp"); }
+  const labelKeys = {search:"search",category:"category",ownerEmail:"ownerEmail",ownerPassword:"password",shopNameInput:"shopName",waNumber:"whatsapp",noticeInput:"welcomeNotice",welcomeBgInput:"welcomeBg",pName:"productName",pPrice:"price",pStock:"stock",pCategory:"categoryLabel",pImage:"imageLinks",pDesc:"description",custName:"name",custPhone:"phone",custAddress:"address",payMethod:"paymentMethod"};
+  Object.keys(labelKeys).forEach(function(id){
+    const input = document.getElementById(id); if (!input) return;
+    const lbl = input.closest("label"); if (!lbl || !lbl.firstChild) return;
+    lbl.firstChild.textContent = t(labelKeys[id]) + " ";
+  });
+  renderGrid(); renderAdmin(); updateCart();
+}
+function toggleLangMenu(){
+  const menu = document.getElementById("langMenu"); if (!menu) return;
+  if (menu.classList.contains("hidden")) {
+    const list = document.getElementById("langList");
+    if (list && !list.innerHTML) {
+      list.innerHTML = langOptions.map(function(l){
+        return '<button class="secondary" style="width:100%;margin:4px 0;text-align:left" onclick="setLanguage(\'' + l[0] + '\')">' + esc(l[1]) + "</button>";
+      }).join("");
+    }
+    menu.classList.remove("hidden");
+  } else menu.classList.add("hidden");
+}
+function setLanguage(code){
+  currentLang = code;
+  localStorage.setItem("shop_lang", code);
+  const menu = document.getElementById("langMenu"); if (menu) menu.classList.add("hidden");
+  applyLang();
+}
+function updateLangBtn(){ applyLang(); }
 function esc(s){ return String(s == null ? "" : s).replace(/[&<>"']/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); }
-function money(n){ return "¥" + Number(n || 0).toFixed(2); }
+function money(n){ return "$" + Number(n || 0).toFixed(2); }
 function showMsg(id, text){ const el = document.getElementById(id); if (el) el.textContent = text || ""; }
+let zoomImages = [];
+let zoomIndex = 0;
+function getImages(p){ return String(p.image_url || "").split(/[\n,]+/).map(function(s){ return s.trim(); }).filter(function(s){ return s; }); }
+function showZoom(){
+  document.getElementById("zoomImg").src = zoomImages[zoomIndex];
+  document.getElementById("zoomCounter").textContent = zoomImages.length > 1 ? (zoomIndex + 1) + " / " + zoomImages.length : "";
+  document.getElementById("zoomPrev").style.display = zoomImages.length > 1 ? "block" : "none";
+  document.getElementById("zoomNext").style.display = zoomImages.length > 1 ? "block" : "none";
+  document.getElementById("zoomModal").style.display = "flex";
+}
+function openZoom(src){ if (!src) return; zoomImages = [src]; zoomIndex = 0; showZoom(); }
+function openZoomCard(imgEl){
+  const card = imgEl.closest(".card"); if (!card) { openZoom(imgEl.src); return; }
+  const main = card.querySelector(".main-img");
+  const thumbs = Array.prototype.slice.call(card.querySelectorAll(".thumb-img")).map(function(t){ return t.src; });
+  const list = [];
+  [main ? main.src : imgEl.src].concat(thumbs).forEach(function(s){ if (s && list.indexOf(s) === -1) list.push(s); });
+  zoomImages = list;
+  zoomIndex = list.indexOf(imgEl.src); if (zoomIndex < 0) zoomIndex = 0;
+  showZoom();
+}
+function zoomPrev(){ if (!zoomImages.length) return; zoomIndex = (zoomIndex - 1 + zoomImages.length) % zoomImages.length; showZoom(); }
+function zoomNext(){ if (!zoomImages.length) return; zoomIndex = (zoomIndex + 1) % zoomImages.length; showZoom(); }
+function switchMain(thumbEl){
+  const card = thumbEl.closest(".card"); if (!card) return;
+  const main = card.querySelector(".main-img"); if (main) main.src = thumbEl.src;
+  card.querySelectorAll(".thumb-img").forEach(function(t){ t.classList.remove("active"); });
+  thumbEl.classList.add("active");
+}
+function closeZoom(){ document.getElementById("zoomModal").style.display = "none"; document.getElementById("zoomImg").src = ""; zoomImages = []; }
 
 const demoProducts = [
-  {id:1,name:"笔记本 A5",price:19.90,stock:100,category:"文具",image_url:"",description:"日常记录本",is_active:true},
-  {id:2,name:"签字笔（3支装）",price:12.90,stock:200,category:"文具",image_url:"",description:"书写顺滑",is_active:true},
-  {id:3,name:"洗脸巾（抽取式）",price:15.90,stock:150,category:"日用",image_url:"",description:"柔软亲肤",is_active:true},
-  {id:4,name:"保温杯 500ml",price:49.90,stock:80,category:"日用",image_url:"",description:"长效保温",is_active:true},
-  {id:5,name:"抽纸（6包）",price:22.90,stock:300,category:"家居",image_url:"",description:"家庭装",is_active:true},
-  {id:6,name:"收纳盒",price:29.90,stock:120,category:"家居",image_url:"",description:"桌面收纳",is_active:true}
+  {id:1,name:"Pet Chew Toy",price:19.90,stock:100,category:"Pet Toys",image_url:"",description:"Durable chew toy for dogs",is_active:true},
+  {id:2,name:"Cat Teaser Wand",price:12.90,stock:200,category:"Pet Toys",image_url:"",description:"Interactive play for cats",is_active:true},
+  {id:3,name:"Everyday Hairband",price:15.90,stock:150,category:"Hairbands",image_url:"",description:"Comfortable daily wear",is_active:true},
+  {id:4,name:"Wide Hairband",price:22.90,stock:80,category:"Hairbands",image_url:"",description:"Soft and non-slip",is_active:true},
+  {id:5,name:"Pet Ball",price:9.90,stock:300,category:"Pet Toys",image_url:"",description:"Bouncy ball for fetch",is_active:true},
+  {id:6,name:"Satin Hairband",price:18.90,stock:120,category:"Hairbands",image_url:"",description:"Gentle on hair",is_active:true}
 ];
 
 async function loadData(){
   if (!CONFIGURED || !sb) {
     products = demoProducts.filter(function(p){ return p.is_active; });
     allProducts = demoProducts;
-    document.getElementById("configNotice").innerHTML = "<strong>演示数据，未接数据库：</strong>这个文件还没有填 Supabase 地址和公开密钥，所以改动只存在当前浏览器、顾客看不到。按 DEPLOY.md 填好并部署后，商品、价格和订单才会存在服务器上，所有访客实时看到。";
+    document.getElementById("configNotice").innerHTML = "<strong>Demo:</strong> " + t("demoNotice");
     renderGrid(); renderAdmin(); return;
   }
   const prodRes = await sb.from("products").select("*").eq("is_active", true).order("created_at", {ascending:false});
-  if (prodRes.error) { document.getElementById("grid").innerHTML = "<p>商品加载失败：" + esc(prodRes.error.message) + "。请检查 schema.sql 是否已执行、权限规则是否正确。</p>"; return; }
+  if (prodRes.error) { document.getElementById("grid").innerHTML = "<p>Failed to load products: " + esc(prodRes.error.message) + ". Please check that schema.sql has been run and the permission rules are correct.</p>"; return; }
   products = prodRes.data || [];
   const allRes = await sb.from("products").select("*").order("created_at", {ascending:false});
   if (!allRes.error) allProducts = allRes.data || products;
   const setRes = await sb.from("settings").select("*").eq("id", 1).maybeSingle();
   if (!setRes.error && setRes.data) {
     settings = setRes.data;
-    document.getElementById("shopName").textContent = settings.shop_name || "我的小店";
+    document.getElementById("shopName").textContent = settings.shop_name || "My Shop";
     document.getElementById("shopNameInput").value = settings.shop_name || "";
     document.getElementById("waNumber").value = settings.whatsapp_number || "";
+    document.getElementById("welcomeBgInput").value = settings.welcome_bg_url || "";
+    document.getElementById("noticeInput").value = settings.notice_text || "";
+    applySplashBg(settings.welcome_bg_url || "");
+    if (settings.notice_text) {
+      const noticeEl = document.getElementById("configNotice");
+      if (noticeEl) noticeEl.innerHTML = "<strong>Welcome!</strong> " + esc(settings.notice_text).replace(/\n/g, "<br>");
+    }
   }
   renderGrid(); renderAdmin();
 }
@@ -171,7 +375,27 @@ function subscribeRealtime(){
 }
 
 function refreshData(){ loadData(); if (isOwner) loadOrders(); }
-function scrollToAdmin(){ document.getElementById("admin").scrollIntoView({behavior:"smooth"}); }
+function scrollToAdmin(){
+  document.getElementById("admin").classList.remove("hidden");
+  document.getElementById("admin").scrollIntoView({behavior:"smooth"});
+}
+let secretTapCount = 0;
+let secretTapLast = 0;
+function secretTap(){
+  const now = Date.now();
+  if (now - secretTapLast > 2000) secretTapCount = 0;
+  secretTapLast = now;
+  secretTapCount++;
+  if (secretTapCount >= 5) { secretTapCount = 0; scrollToAdmin(); }
+}
+function checkHiddenOwnerEntry(){
+  const q = (location.search || "").toLowerCase();
+  const h = (location.hash || "").toLowerCase();
+  if (q.indexOf("owner") !== -1 || h.indexOf("owner") !== -1) {
+    document.getElementById("admin").classList.remove("hidden");
+    setTimeout(function(){ document.getElementById("admin").scrollIntoView({behavior:"smooth"}); }, 400);
+  }
+}
 
 function renderGrid(){
   const q = (document.getElementById("search").value || "").toLowerCase();
@@ -179,57 +403,113 @@ function renderGrid(){
   const currentCat = sel.value;
   const cats = [];
   products.forEach(function(p){ if (p.category && cats.indexOf(p.category) === -1) cats.push(p.category); });
-  sel.innerHTML = '<option value="">全部</option>' + cats.map(function(c){ return '<option value="' + esc(c) + '"' + (c === currentCat ? " selected" : "") + ">" + esc(c) + "</option>"; }).join("");
+  sel.innerHTML = '<option value="">' + t("all") + '</option>' + cats.map(function(c){ return '<option value="' + esc(c) + '"' + (c === currentCat ? " selected" : "") + ">" + esc(c) + "</option>"; }).join("");
   const c = sel.value;
   const list = products.filter(function(p){ return (!c || p.category === c) && String(p.name).toLowerCase().indexOf(q) !== -1; });
   document.getElementById("grid").innerHTML = list.map(function(p){
     const out = Number(p.stock) <= 0;
+    const imgs = getImages(p);
+    const thumbs = imgs.length > 1 ? '<div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">' + imgs.map(function(u, i){ return '<img class="thumb-img' + (i === 0 ? " active" : "") + '" src="' + esc(u) + '" alt="" onclick="switchMain(this)">'; }).join("") + "</div>" : "";
     return '<div class="card">' +
-      (p.image_url ? '<img src="' + esc(p.image_url) + '" alt="">' : '<div style="height:170px;border-radius:12px;background:#e8ece6;display:flex;align-items:center;justify-content:center">📦 ' + esc(p.category || "") + "</div>") +
+      (imgs.length ? '<img class="main-img" src="' + esc(imgs[0]) + '" alt="" title="' + t("clickEnlarge") + '" onclick="openZoomCard(this)"><p style="font-size:12px;color:#888;margin:6px 0 0">' + t("clickEnlarge") + (imgs.length > 1 ? " · " + imgs.length + " " + t("images") : "") + "</p>" + thumbs : '<div style="height:170px;border-radius:12px;background:#e8ece6;display:flex;align-items:center;justify-content:center">📦 ' + esc(p.category || "") + "</div>") +
       "<h3>" + esc(p.name) + "</h3><p>" + esc(p.description || "") + "</p>" +
-      "<p>库存：" + esc(p.stock) + "</p>" +
+      "<p>" + t("stock") + ": " + esc(p.stock) + "</p>" +
       '<p class="price">' + money(p.price) + "</p>" +
-      '<button onclick="addToCart(' + p.id + ')"' + (out ? " disabled" : "") + ">" + (out ? "已售罄" : "加入购物车") + "</button></div>";
-  }).join("") || "<p>没有找到商品。</p>";
+      '<button onclick="addToCart(' + p.id + ', this)"' + (out ? " disabled" : "") + ">" + (out ? t("soldOut") : t("addToCart")) + "</button></div>";
+  }).join("") || "<p>" + t("noProducts") + "</p>";
 }
 
+function toggleEdit(id){
+  const form = document.getElementById("edit-form-" + id);
+  const card = document.getElementById("admin-card-" + id);
+  const btn = document.getElementById("view-btn-" + id);
+  if (!form) return;
+  const open = form.style.display === "none";
+  form.style.display = open ? "block" : "none";
+  if (card) card.style.gridColumn = open ? "1 / -1" : "";
+  if (btn) btn.textContent = open ? t("close") : t("view");
+}
 function renderAdmin(){
   if (!isOwner) return;
   document.getElementById("adminList").innerHTML = allProducts.map(function(p){
-    return '<div class="admin-row"><strong>' + esc(p.name) + "</strong>（" + (p.is_active ? "已上架" : "已下架") + "）<br>" +
-      '<label>商品名 <input id="edit-name-' + p.id + '" value="' + esc(p.name) + '"></label>' +
-      '<label>售价 <input id="edit-price-' + p.id + '" type="number" step="0.01" value="' + esc(p.price) + '"></label>' +
-      '<label>库存 <input id="edit-stock-' + p.id + '" type="number" value="' + esc(p.stock) + '"></label>' +
-      '<label>分类 <input id="edit-cat-' + p.id + '" value="' + esc(p.category || "") + '"></label>' +
-      '<label>图片链接 <input id="edit-img-' + p.id + '" value="' + esc(p.image_url || "") + '"></label>' +
-      '<label>描述 <input id="edit-desc-' + p.id + '" value="' + esc(p.description || "") + '"></label>' +
-      '<button onclick="saveProduct(' + p.id + ')">保存修改</button> ' +
-      '<button class="secondary" onclick="toggleProduct(' + p.id + ", " + (!p.is_active) + ')">' + (p.is_active ? "下架" : "重新上架") + "</button> " +
-      '<button class="secondary" onclick="deleteProduct(' + p.id + ')">删除</button></div>';
-  }).join("") || "<p>还没有商品。</p>";
+    const imgs = getImages(p);
+    const imgHtml = imgs.length ? '<img src="' + esc(imgs[0]) + '" alt="" style="width:100%;height:170px;object-fit:cover;border-radius:12px">' : '<div style="height:170px;border-radius:12px;background:#e8ece6;display:flex;align-items:center;justify-content:center;font-size:36px">📦</div>';
+    return '<div class="card" id="admin-card-' + p.id + '" style="position:relative;padding-bottom:52px">' + imgHtml +
+      "<h3 style=\"margin:8px 0 0;font-size:14px\">" + esc(p.name) + "</h3>" +
+      '<p style="font-size:12px;color:#888;margin:4px 0 0">' + (p.is_active ? t("listed") : t("unlisted")) + " · " + money(p.price) + "</p>" +
+      '<div style="position:absolute;right:12px;bottom:12px"><button id="view-btn-' + p.id + '" onclick="toggleEdit(' + p.id + ')">' + t("view") + "</button></div>" +
+      '<div id="edit-form-' + p.id + '" style="display:none;margin-top:12px">' +
+      '<label>' + t("productName") + ' <input id="edit-name-' + p.id + '" value="' + esc(p.name) + '"></label>' +
+      '<label>' + t("price") + ' <input id="edit-price-' + p.id + '" type="number" step="0.01" value="' + esc(p.price) + '"></label>' +
+      '<label>' + t("stock") + ' <input id="edit-stock-' + p.id + '" type="number" value="' + esc(p.stock) + '"></label>' +
+      '<label>' + t("categoryLabel") + ' <input id="edit-cat-' + p.id + '" value="' + esc(p.category || "") + '"></label>' +
+      '<label>' + t("imageLinks") + ' <textarea id="edit-img-' + p.id + '" rows="3">' + esc(p.image_url || "") + '</textarea></label>' +
+      '<label>' + t("description") + ' <input id="edit-desc-' + p.id + '" value="' + esc(p.description || "") + '"></label>' +
+      '<button onclick="saveProduct(' + p.id + ')">' + t("saveChanges") + '</button> ' +
+      '<button class="secondary" onclick="toggleProduct(' + p.id + ", " + (!p.is_active) + ')">' + (p.is_active ? t("unlist") : t("listAgain")) + "</button> " +
+      '<button class="secondary" onclick="deleteProduct(' + p.id + ')">' + t("delete") + "</button></div></div>";
+  }).join("") || "<p>" + t("noProductsYet") + "</p>";
   document.getElementById("orderList").innerHTML = orders.length ? orders.map(function(o){
     let itemsText = "";
-    try { itemsText = (o.items_json || []).map(function(x){ return esc(x.name) + "×" + esc(x.qty); }).join("，"); } catch(e){ itemsText = ""; }
-    return '<div style="border:1px solid #eee;border-radius:12px;padding:10px;margin:8px 0"><strong>' + esc(o.order_no) + "</strong> · " + money(o.total) + " · " + esc(o.status || "") + "<br>" + itemsText + "<br>收货：" + esc(o.customer_name || "") + " " + esc(o.customer_phone || "") + " " + esc(o.customer_address || "") + "<br><button class=\"secondary\" onclick=\"markOrderDone(" + o.id + ')"' + (o.status === "done" ? " disabled" : "") + ">标记已处理</button></div>";
-  }).join("") : "<p>暂无订单。</p>";
+    try { itemsText = (o.items_json || []).map(function(x){ return esc(x.name) + " x " + esc(x.qty); }).join(", "); } catch(e){ itemsText = ""; }
+    return '<div style="border:1px solid #eee;border-radius:12px;padding:10px;margin:8px 0"><strong>' + esc(o.order_no) + "</strong> · " + money(o.total) + " · " + esc(o.status || "") + "<br>" + itemsText + "<br>" + t("deliveryTo") + esc(o.customer_name || "") + " " + esc(o.customer_phone || "") + " " + esc(o.customer_address || "") + "<br><button class=\"secondary\" onclick=\"markOrderDone(" + o.id + ')"' + (o.status === "done" ? " disabled" : "") + ">" + t("markProcessed") + "</button></div>";
+  }).join("") : "<p>" + t("noOrders") + "</p>";
+  renderCategories();
+}
+function getCategoryList(){
+  const cats = [];
+  allProducts.forEach(function(p){
+    const c = p.category || "";
+    if (cats.indexOf(c) === -1) cats.push(c);
+  });
+  return cats;
+}
+function renderCategories(){
+  const el = document.getElementById("categoryList"); if (!el || !isOwner) return;
+  const cats = getCategoryList();
+  if (!cats.length) { el.innerHTML = "<p>" + t("noCategories") + "</p>"; return; }
+  el.innerHTML = cats.map(function(c, i){
+    const items = allProducts.filter(function(p){ return (p.category || "") === c; });
+    const listed = items.filter(function(p){ return p.is_active; }).length;
+    return '<div class="admin-row"><strong>' + esc(c || t("noCategory")) + "</strong> (" + items.length + " total, " + listed + " " + t("listed") + ")<br>" +
+      '<button class="secondary" onclick="unlistCategoryByIndex(' + i + ')">' + t("unlistAll") + "</button> " +
+      '<button class="secondary" onclick="deleteCategoryByIndex(' + i + ')">' + t("deleteAllProducts") + "</button></div>";
+  }).join("");
+}
+async function unlistCategoryByIndex(i){
+  if (!requireOwner()) return;
+  const cats = getCategoryList(); const c = cats[i]; if (c === undefined) return;
+  const items = allProducts.filter(function(p){ return (p.category || "") === c; });
+  for (const p of items) { await sb.from("products").update({is_active: false}).eq("id", p.id); }
+  alert(t("categoryUnlisted"));
+  loadData();
+}
+async function deleteCategoryByIndex(i){
+  if (!requireOwner() || !confirm(t("deleteCategoryConfirm"))) return;
+  const cats = getCategoryList(); const c = cats[i]; if (c === undefined) return;
+  const items = allProducts.filter(function(p){ return (p.category || "") === c; });
+  for (const p of items) { const res = await sb.from("products").delete().eq("id", p.id); if (res.error) { alert(t("alertDeleteFailed") + res.error.message); return; } }
+  alert(t("categoryDeleted"));
+  loadData();
 }
 
 async function ownerLogin(){
-  if (!CONFIGURED || !sb) { showMsg("loginMsg", "请先按 DEPLOY.md 填好 Supabase 地址和公开密钥并部署，本地演示文件无法真正登录。"); return; }
+  if (!CONFIGURED || !sb) { showMsg("loginMsg", t("alertDemoLogin")); return; }
   const email = document.getElementById("ownerEmail").value.trim();
   const password = document.getElementById("ownerPassword").value;
-  if (!email || !password) { showMsg("loginMsg", "请填邮箱和密码。"); return; }
+  if (!email || !password) { showMsg("loginMsg", t("alertFillLogin")); return; }
   const res = await sb.auth.signInWithPassword({email: email, password: password});
-  if (res.error) { showMsg("loginMsg", "登录失败：" + res.error.message); return; }
+  if (res.error) { showMsg("loginMsg", t("alertLoginFailed") + res.error.message); return; }
   await afterLogin();
 }
 async function afterLogin(){
   const sess = await sb.auth.getSession();
   if (!sess.data.session) return;
   isOwner = true;
+  document.getElementById("admin").classList.remove("hidden");
   document.getElementById("loginBox").classList.add("hidden");
   document.getElementById("ownerBox").classList.remove("hidden");
-  document.getElementById("ownerInfo").textContent = "已登录店主账号：" + sess.data.session.user.email;
+  document.getElementById("ownerInfo").textContent = t("loggedInAs") + sess.data.session.user.email;
   await loadData(); await loadOrders();
 }
 async function ownerLogout(){
@@ -237,31 +517,49 @@ async function ownerLogout(){
   isOwner = false;
   document.getElementById("ownerBox").classList.add("hidden");
   document.getElementById("loginBox").classList.remove("hidden");
+  document.getElementById("admin").classList.add("hidden");
   document.getElementById("ownerPassword").value = "";
   loadData();
 }
 function requireOwner(){
-  if (!isOwner) { alert("请先用店主账号登录。"); return false; }
-  if (!CONFIGURED) { alert("演示数据未接数据库，改动不会同步给顾客。请先按 DEPLOY.md 部署。"); return false; }
+  if (!isOwner) { alert(t("alertLogin")); return false; }
+  if (!CONFIGURED) { alert(t("alertDemo")); return false; }
   return true;
 }
 async function saveSettings(){
   if (!requireOwner()) return;
   const wa = document.getElementById("waNumber").value.trim();
-  if (wa && !/^[0-9]{8,15}$/.test(wa)) { alert("WhatsApp 号码只填数字、带区号、不带 + 号，8 到 15 位。"); return; }
-  const res = await sb.from("settings").upsert({id:1, shop_name: document.getElementById("shopNameInput").value.trim() || "我的小店", whatsapp_number: wa});
-  if (res.error) { alert("保存失败：" + res.error.message); return; }
-  alert("店铺设置已保存，顾客端会实时看到店铺名和新的 WhatsApp 号码。");
+  if (wa && !/^[0-9]{8,15}$/.test(wa)) { alert(t("alertWhatsAppDigits")); return; }
+  const res = await sb.from("settings").upsert({id:1, shop_name: document.getElementById("shopNameInput").value.trim() || "My Shop", whatsapp_number: wa, welcome_bg_url: document.getElementById("welcomeBgInput").value.trim(), notice_text: document.getElementById("noticeInput").value.trim()});
+  if (res.error) {
+    if (String(res.error.message).indexOf("notice_text") !== -1) alert("Please run this SQL in Supabase SQL Editor first, then save again:\nALTER TABLE settings ADD COLUMN IF NOT EXISTS notice_text text;");
+    else alert(t("alertSaveFailed") + res.error.message);
+    return;
+  }
+  alert("Shop settings saved. Customers will see the new shop name, WhatsApp number and welcome notice live.");
+  loadData();
+}
+async function saveWelcomeBg(){
+  if (!requireOwner()) return;
+  const bg = document.getElementById("welcomeBgInput").value.trim();
+  const res = await sb.from("settings").upsert({id:1, shop_name: document.getElementById("shopNameInput").value.trim() || "My Shop", whatsapp_number: document.getElementById("waNumber").value.trim(), welcome_bg_url: bg, notice_text: document.getElementById("noticeInput").value.trim()});
+  if (res.error) {
+    if (String(res.error.message).indexOf("welcome_bg_url") !== -1) alert("Please run this SQL in Supabase SQL Editor first, then save again:\nALTER TABLE settings ADD COLUMN IF NOT EXISTS welcome_bg_url text;");
+    else alert(t("alertSaveFailed") + res.error.message);
+    return;
+  }
+  alert("Welcome background saved. Customers will see it on the opening page.");
+  applySplashBg(bg);
   loadData();
 }
 async function addProduct(){
   if (!requireOwner()) return;
   const name = document.getElementById("pName").value.trim();
   const price = Number(document.getElementById("pPrice").value);
-  if (!name || !price) { alert("请填商品名和售价"); return; }
+  if (!name || !price) { alert(t("alertNamePrice")); return; }
   const res = await sb.from("products").insert({name:name, price:price, stock:Number(document.getElementById("pStock").value || 0), category:document.getElementById("pCategory").value.trim(), image_url:document.getElementById("pImage").value.trim(), description:document.getElementById("pDesc").value.trim(), is_active:true});
-  if (res.error) { alert("上架失败：" + res.error.message); return; }
-  alert("已上架，顾客端会实时看到。");
+  if (res.error) { alert(t("alertAddFailed") + res.error.message); return; }
+  alert(t("alertAdded"));
   loadData();
 }
 async function saveProduct(id){
@@ -274,20 +572,20 @@ async function saveProduct(id){
     image_url: document.getElementById("edit-img-" + id).value.trim(),
     description: document.getElementById("edit-desc-" + id).value.trim()
   }).eq("id", id);
-  if (res.error) { alert("保存失败：" + res.error.message); return; }
-  alert("已保存，顾客端会实时看到新价格。");
+  if (res.error) { alert(t("alertSaveFailed") + res.error.message); return; }
+  alert(t("alertSaved"));
   loadData();
 }
 async function toggleProduct(id, active){
   if (!requireOwner()) return;
   const res = await sb.from("products").update({is_active: active}).eq("id", id);
-  if (res.error) { alert("操作失败：" + res.error.message); return; }
+  if (res.error) { alert(t("alertOpFailed") + res.error.message); return; }
   loadData();
 }
 async function deleteProduct(id){
-  if (!requireOwner() || !confirm("确定删除这个商品吗？")) return;
+  if (!requireOwner() || !confirm(t("alertDeleteConfirm"))) return;
   const res = await sb.from("products").delete().eq("id", id);
-  if (res.error) { alert("删除失败：" + res.error.message); return; }
+  if (res.error) { alert(t("alertDeleteFailed") + res.error.message); return; }
   loadData();
 }
 async function markOrderDone(id){
@@ -296,51 +594,80 @@ async function markOrderDone(id){
   loadOrders();
 }
 
-function addToCart(id){
+function flyToCart(fromEl){
+  const cartBtn = document.getElementById("cartBtn");
+  if (!fromEl || !cartBtn) return;
+  const from = fromEl.getBoundingClientRect();
+  const to = cartBtn.getBoundingClientRect();
+  const el = document.createElement("div");
+  el.textContent = "+";
+  el.style.cssText = "position:fixed;left:" + (from.left + from.width / 2 - 20) + "px;top:" + (from.top + from.height / 2 - 20) + "px;width:40px;height:40px;border-radius:50%;background:rgba(31,61,43,.92);color:#fff;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:800;z-index:300;pointer-events:none;box-shadow:0 8px 24px rgba(0,0,0,.25)";
+  document.body.appendChild(el);
+  const dx = (to.left + to.width / 2) - (from.left + from.width / 2);
+  const dy = (to.top + to.height / 2) - (from.top + from.height / 2);
+  const anim = el.animate([
+    {transform: "translate(0,0) scale(1)", opacity: 1},
+    {transform: "translate(" + (dx * 0.5) + "px," + (dy * 0.5 - 80) + "px) scale(1.1)", opacity: 1, offset: 0.5},
+    {transform: "translate(" + dx + "px," + dy + "px) scale(.3)", opacity: .6}
+  ], {duration: 800, easing: "ease-in-out"});
+  anim.onfinish = function(){
+    el.remove();
+    cartBtn.classList.add("cart-bump");
+    setTimeout(function(){ cartBtn.classList.remove("cart-bump"); }, 400);
+  };
+}
+function addToCart(id, btnEl){
   const p = products.find(function(x){ return x.id === id; }); if (!p) return;
   const item = cart.find(function(x){ return x.id === id; });
-  if (item) item.qty++; else cart.push({id:id, name:p.name, price:p.price, qty:1});
+  if (item) item.qty++; else cart.push({id:id, name:p.name, price:p.price, qty:1, image_url: getImages(p)[0] || ""});
+  if (btnEl) flyToCart(btnEl);
   updateCart();
 }
+function clearCart(){ cart = []; updateCart(); }
 function updateCart(){
   document.getElementById("cartCount").textContent = cart.reduce(function(s,x){ return s + x.qty; }, 0);
   const subtotal = cart.reduce(function(s,x){ return s + x.price * x.qty; }, 0);
   const ship = subtotal === 0 ? 0 : (subtotal >= 59 ? 0 : 6);
   document.getElementById("cartItems").innerHTML = cart.length ? cart.map(function(x,i){
-    return "<div>" + esc(x.name) + " × " + x.qty + " · " + money(x.price * x.qty) +
+    const thumb = x.image_url ? '<img src="' + esc(x.image_url) + '" alt="" style="width:56px;height:56px;object-fit:cover;border-radius:12px;flex-shrink:0">' : '<div style="width:56px;height:56px;border-radius:12px;background:#e8ece6;display:flex;align-items:center;justify-content:center;flex-shrink:0">📦</div>';
+    return '<div style="display:flex;gap:10px;align-items:center;margin:10px 0">' + thumb +
+      '<div style="flex:1"><strong>' + esc(x.name) + "</strong><br>" + money(x.price) + " x " + x.qty + " = " + money(x.price * x.qty) + "</div>" +
       ' <button class="secondary" onclick="cart[' + i + '].qty++;updateCart()">+</button> <button class="secondary" onclick="cart[' + i + '].qty--;if(cart[' + i + '].qty<=0)cart.splice(' + i + ',1);updateCart()">-</button></div>';
-  }).join("") : "<p>购物车是空的。</p>";
-  document.getElementById("cartTotal").textContent = "小计 " + money(subtotal) + " · 运费 " + money(ship) + " · 合计 " + money(subtotal + ship);
+  }).join("") : "<p>" + t("cartEmpty") + "</p>";
+  document.getElementById("cartTotal").textContent = t("subtotal") + " " + money(subtotal) + " · " + t("shipping") + " " + money(ship) + " · " + t("total") + " " + money(subtotal + ship);
 }
 function toggleCart(){ document.getElementById("cartDrawer").classList.toggle("hidden"); }
 
 async function checkout(){
-  if (!cart.length) { alert("购物车是空的"); return; }
+  if (!cart.length) { alert(t("alertCartEmpty")); return; }
   const name = document.getElementById("custName").value.trim(), phone = document.getElementById("custPhone").value.trim(), address = document.getElementById("custAddress").value.trim();
-  if (!name || !phone || !address) { alert("请填收货人、手机号和地址"); return; }
+  if (!name || !phone || !address) { alert(t("alertFillCheckout")); return; }
   const subtotal = cart.reduce(function(s,x){ return s + x.price * x.qty; }, 0);
   const ship = subtotal >= 59 ? 0 : 6;
   const total = subtotal + ship;
   const orderNo = "ORD-" + new Date().toISOString().slice(0,10).replaceAll("-", "") + "-" + Math.floor(1000 + Math.random() * 9000);
-  const itemsText = cart.map(function(x){ return x.name + "×" + x.qty + "（" + money(x.price * x.qty) + "）"; }).join("，");
+  const itemsText = cart.map(function(x){ return x.name + " x " + x.qty + " (" + money(x.price * x.qty) + ")"; }).join(", ");
   let saved = false;
   if (CONFIGURED && sb) {
     const res = await sb.from("orders").insert({order_no: orderNo, items_json: cart, subtotal: subtotal, shipping: ship, total: total, pay_method: document.getElementById("payMethod").value, customer_name: name, customer_phone: phone, customer_address: address, status: "pending"});
-    if (res.error) { alert("订单写入数据库失败：" + res.error.message + "。请检查 orders 表的公开写入权限，仍可先用下面的 WhatsApp 链接把订单发给店主。"); }
+    if (res.error) { alert("Failed to save order to the database: " + res.error.message + ". Please check the public insert permission for the orders table. You can still use the WhatsApp link below to send the order to the owner."); }
     else saved = true;
   }
   const wa = (settings.whatsapp_number || "").trim();
-  const msg = "你好，我要下单：订单" + orderNo + "，" + itemsText + "，运费" + money(ship) + "，合计" + money(total) + "。收货：" + name + " " + phone + " " + address + "。付款方式：" + document.getElementById("payMethod").value;
+  const msg = "Hello, I would like to order: Order " + orderNo + ", " + itemsText + ", shipping " + money(ship) + ", total " + money(total) + ". Delivery to: " + name + " " + phone + " " + address + ". Payment method: " + document.getElementById("payMethod").value;
   const waLink = wa ? "https://wa.me/" + wa + "?text=" + encodeURIComponent(msg) : "";
   const qr = waLink ? "https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=" + encodeURIComponent(waLink) : "";
   document.getElementById("orderResult").innerHTML =
-    "<h3>订单已生成：" + esc(orderNo) + "</h3><p>" + esc(itemsText) + "</p><p>合计 " + money(total) + "（含运费 " + money(ship) + "）" + (saved ? " · 已写入店主后台" : "") + "</p>" +
-    (waLink ? '<p><a href="' + waLink + '" target="_blank" rel="noopener">点这里打开 WhatsApp，把订单发给店主</a></p><img class="qr" src="' + qr + '" alt="WhatsApp 二维码"><p>扫码后请在 WhatsApp 里按发送，店主才会收到。</p>' : "<p><strong>店主还没有填 WhatsApp 号码，暂时无法生成二维码。</strong></p>") +
-    "<p>注意：这只是聊天确认，不是自动扣款；付款请在 WhatsApp 里和店主确认。</p>";
+    "<h3>" + t("orderCreated") + esc(orderNo) + "</h3><p>" + esc(itemsText) + "</p><p>" + t("total") + " " + money(total) + " (" + t("includingShipping") + " " + money(ship) + ")" + (saved ? " · " + t("savedToDashboard") : "") + "</p>" +
+    (waLink ? '<p><a href="' + waLink + '" target="_blank" rel="noopener">' + t("openWhatsApp") + '</a></p><img class="qr" src="' + qr + '" alt="WhatsApp QR code"><p>' + t("pressSend") + "</p>" : "<p><strong>" + t("noWhatsApp") + "</strong></p>") +
+    "<p>" + t("chatNotPayment") + "</p>";
   cart = []; updateCart();
   if (isOwner) loadOrders();
 }
 
+startWelcomeRotation();
+updateLangBtn();
+checkHiddenOwnerEntry();
 loadData(); updateCart(); subscribeRealtime();
 document.addEventListener("visibilitychange", function(){ if (!document.hidden) loadData(); });
 if (sb) { sb.auth.getSession().then(function(r){ if (r.data.session) afterLogin(); }); }
